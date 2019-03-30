@@ -4,11 +4,11 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "build Zerkola",
             "type": "shell",
             "command": "g++",
             "args": [
-                "-g", "src/main.cpp"
+                "-g", "${workspaceFolder}\\src\\main.cpp", "-o", "${workspaceFolder}\\bin\\Zerkola.exe"
             ],
             "group": {
                 "kind": "build",
