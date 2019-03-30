@@ -1,5 +1,6 @@
 # Don't track content of these folders
 ext/matplotlib-cpp
+.vscode
 
 # Compiled source #
 ###################
