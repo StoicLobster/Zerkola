@@ -10,3 +10,4 @@ ext/matplotlib-cpp
 *.exe
 *.o
 *.so
+/Debug/
