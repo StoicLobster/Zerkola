@@ -12,7 +12,7 @@ class Zerkola {
 	//members
 	const double NL_, EL_, SL_, WL_; //Limits of game board in North, South, East, West
 	long primary_fig_num_; //Number to access primary plot figure
-	geometry_utils::Point2D
+	geometry_utils::Pose2D;
 	//methods
 	void init_plot();
 
