@@ -2,7 +2,7 @@
 
 namespace zerkola {
 
-Zerkola::Zerkola(): NL_(100.0), WL_(100.0), SL_(100.0), EL_(100.0), primary_fig_num_(0) {};
+Zerkola::Zerkola(): kNorthLimit_(100.0), kEastLimit_(100.0), kSouthLimit_(0.0), kWestLimit_(0.0), primary_fig_num_(0) {};
 
 Zerkola::~Zerkola() {};
 
