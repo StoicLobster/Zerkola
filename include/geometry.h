@@ -1,7 +1,11 @@
 #ifndef ZERKOLA_INCLUDE_GEOMETRY_H_
 #define ZERKOLA_INCLUDE_GEOMETRY_H_
 
+#include <math.h>
 #include <vector>
+#include <assert.h>
+#include <matplotlibcpp.h>
+#include <iostream>
 
 namespace geometry {
 
@@ -28,6 +32,11 @@ class Point2D {
 	inline void set_x(const double x) { x_ = x; return; };
 	inline void set_y(const double y) { y_ = y; return; };
 
+	//methods
+	inline double EucDist(const Point2D& other_point) const { return( sqrt( powf((x_ - other_point.x()),2.0) + powf((y_ - other_point.y()),2.0)) ); };
+	inline double EucDist(const double& x, const double& y) const { return( sqrt( powf((x_ - x),2.0) + powf((y_ - y),2.0)) ); };
+	inline void Print() const { std::cout << "(" << x_ << "," << y_ << ")" << std::endl; return; }
+
 };
 
 class Pose2D : protected Point2D {
@@ -53,13 +62,17 @@ class PlotObj : protected Pose2D {
 	//Object will have CG point and pose (Pose2D) as well as plotted shape (plot_shape) and collision circle radius (rad_col)
 	private:
 	//members
-	std::vector<Point2D> plot_shape; //Vector of points which define plotted shape. Must start and end at the same point
-	double rad_col; //Radius of collision with center of circle at (x_,y_)
+	std::vector<Point2D> shape_boundary; //Vector of points which define plotted shape. Must start and end at the same point
+	double rad_collision; //Radius of collision with center of circle at (x_,y_)
 
 	public:
+	//constructors
 	PlotObj();
 	PlotObj(BoundaryShapes shape);
 	~PlotObj();
+
+	//methods
+	void Plot() const; //Plots the current object boundary
 };
 
 } // namespace geometry
