@@ -55,6 +55,8 @@
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/include}&quot;"/>
                                     									
+                                    <listOptionValue builtIn="false" value="/home/kinetic/Documents/Eigen_3_3_7"/>
+                                    									
                                     <listOptionValue builtIn="false" value="/usr/include/python2.7"/>
                                     									
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/ext/matplotlib-cpp}&quot;"/>

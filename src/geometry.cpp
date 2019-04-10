@@ -3,23 +3,20 @@
 namespace geometry {
 
 //Point2D
-Point2D::Point2D(): x_(0.0),y_(0.0) {};
+Point2D::Point2D(): point_(0.0,0.0) {};
 
-Point2D::Point2D(const double x, const double y): x_(x),y_(y) {};
+Point2D::Point2D(const double x, const double y): point_(x,y) {};
 
 Point2D::~Point2D() {};
+
+double Point2D::EucDist(const Point2D& other_point) const {
+	Eigen::Vector2d v = point_ - other_point;
+	return (v.norm());
+}
 //Point2D
 
-//Pose2D
-Pose2D::Pose2D(): theta_(0.0) {};
-
-Pose2D::Pose2D(const double x, const double y, const double theta): Point2D(x,y), theta_(theta) {};
-
-Pose2D::~Pose2D() {};
-//Pose2D
-
 //PlotObj
-PlotObj::PlotObj(): rad_collision(0.0) {};
+PlotObj::PlotObj(): CG_(0.0,0.0), dir_(0.0,0.0), rad_collision(0.0), speed_(0.0) {};
 
 PlotObj::PlotObj(BoundaryShapes shape):Pose2D(50.0,30.0,0.0) {
 	shape_boundary.clear();
