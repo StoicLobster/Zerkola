@@ -4,11 +4,30 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build Zerkola",
+            "label": "g++ build Zerkola",
             "type": "shell",
             "command": "g++",
             "args": [
-                "-g", "${workspaceFolder}\\src\\main.cpp", "-o", "${workspaceFolder}\\bin\\Zerkola.exe"
+                "-g",
+                "-Wall",
+                "${workspaceFolder}/src/*.cpp",                
+                "-I",
+                "${workspaceFolder}/include/", 
+                "-I", 
+                "${workspaceFolder}/ext/matplotlib-cpp/",
+                "-I",
+                "/usr/include/python2.7",
+                "-I",
+                "/opt/Eigen_3_3_7/",
+                "-I",
+                "/usr/include/",
+                "-l",
+                "python2.7",
+                "-l",
+                "ncurses",
+                "-o",
+                "${workspaceFolder}/bin/zerkola"
+                
             ],
             "group": {
                 "kind": "build",

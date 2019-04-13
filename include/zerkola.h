@@ -3,6 +3,7 @@
 #include <matplotlibcpp.h>
 #include <geometry.h>
 #include <vector>
+#include <ncurses.h>
 
 namespace plt = matplotlibcpp;
 namespace zerkola {

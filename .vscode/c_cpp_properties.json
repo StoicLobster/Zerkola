@@ -1,0 +1,20 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/include",
+                "/usr/include/python2.7",
+                "${workspaceFolder}/ext/matplotlib-cpp/",
+                "/opt/Eigen_3_3_7/",
+                "/usr/include/"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}

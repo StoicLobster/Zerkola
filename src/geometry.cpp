@@ -10,7 +10,7 @@ Point2D::Point2D(const double x, const double y): point_(x,y) {};
 Point2D::~Point2D() {};
 
 double Point2D::EucDist(const Point2D& other_point) const {
-	Eigen::Vector2d v = point_ - other_point;
+	Eigen::Vector2d v(this->x() - other_point.x(), this->y() - other_point.y());
 	return (v.norm());
 }
 //Point2D
@@ -18,41 +18,48 @@ double Point2D::EucDist(const Point2D& other_point) const {
 //PlotObj
 PlotObj::PlotObj(): CG_(0.0,0.0), dir_(0.0,0.0), rad_collision(0.0), speed_(0.0) {};
 
-PlotObj::PlotObj(BoundaryShapes shape):Pose2D(50.0,30.0,0.0) {
-	shape_boundary.clear();
-	switch (shape) {
-	case BoundaryShapes::kTank: {
-		//Tank Shape
-		const double kLength = 3;
-		const double kWidth = 2;
-		shape_boundary.emplace_back(x_-kWidth/2.0,y_-kLength/2);
-		shape_boundary.emplace_back(x_-kWidth/2.0,y_+kLength/2);
-		shape_boundary.emplace_back(x_+kWidth/2.0,y_+kLength/2);
-		shape_boundary.emplace_back(x_+kWidth/2.0,y_-kLength/2);
-		shape_boundary.emplace_back(x_-kWidth/2.0,y_-kLength/2);
-		break;
-	}
-	case BoundaryShapes::kMissile: {
-		//Missile Shape
-		//TODO
-		break;
-	}
-	default: {
-		break;
-	}
-	}
-	//Assert that start and end points are the same
-	assert((shape_boundary.front().x() == shape_boundary.back().x()) && (shape_boundary.front().y() == shape_boundary.back().y()));
-	//Determine radius for collision detection for given shape
-	rad_collision = 0.0;
-	for (auto it = shape_boundary.begin(); it != shape_boundary.end(); ++it) {
-		double curr_dist = it->EucDist(x_,y_);
-		if (curr_dist > rad_collision) {
-			rad_collision = curr_dist;
+PlotObj::PlotObj(const double& x_start, const double& y_start, const BoundaryPoly& shape, const double& spd):
+	CG_(x_start,y_start),
+	dir_(0.0,0.0),
+	speed_(spd)
+	{
+		
+
+		polygon_.clear();
+		switch (shape) {
+		case BoundaryPoly::kTank: {
+			//Tank Shape
+			const double kLength = 3;
+			const double kWidth = 2;
+			polygon_.emplace_back(CG_.x()-kWidth/2.0,CG_.y()-kLength/2);
+			polygon_.emplace_back(CG_.x()-kWidth/2.0,CG_.y()+kLength/2);
+			polygon_.emplace_back(CG_.x()+kWidth/2.0,CG_.y()+kLength/2);
+			polygon_.emplace_back(CG_.x()+kWidth/2.0,CG_.y()-kLength/2);
+			polygon_.emplace_back(CG_.x()-kWidth/2.0,CG_.y()-kLength/2);
+			break;
 		}
-	}
-	return;
-};
+		case BoundaryPoly::kMissile: {
+			//Missile Shape
+			//TODO
+			break;
+		}
+		default: {
+			break;
+		}
+		}
+		//Assert that start and end points are the same
+		assert((polygon_.front().x() == polygon_.back().x()) && (polygon_.front().y() == polygon_.back().y()));
+		//Determine radius for collision detection for given shape
+		rad_collision = 0.0;
+		for (auto it = polygon_.begin(); it != polygon_.end(); ++it) {
+			double curr_dist = it->EucDist(CG_.x(),CG_.y());
+			if (curr_dist > rad_collision) {
+				rad_collision = curr_dist;
+			}
+		}
+		//Check for collisions at start
+		return;
+	};
 
 PlotObj::~PlotObj() {};
 
@@ -61,12 +68,19 @@ void PlotObj::Plot() const {
 	namespace plt = matplotlibcpp;
 	//Prepare plotting vectors
 	std::vector<double> shape_x , shape_y;
-	for (auto it = shape_boundary.begin(); it != shape_boundary.end(); ++it) {
+	for (auto it = polygon_.begin(); it != polygon_.end(); ++it) {
 		shape_x.push_back(it->x());
 		shape_y.push_back(it->y());
 	}
 	plt::plot(shape_x,shape_y);
 	return;
+}
+
+void PlotObj::Move() {
+	CG_.set_y(CG_.y() + speed_);
+	for (auto it = polygon_.begin(); it != polygon_.end(); ++it) {
+		it->set_y(it->y() + speed_);
+	}
 }
 //PlotObj
 

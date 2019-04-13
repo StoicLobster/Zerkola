@@ -10,7 +10,7 @@
 
 namespace geometry {
 
-enum class BoundaryShapes {
+enum class BoundaryPoly {
 	kTank,
 	kMissile
 };
@@ -47,22 +47,20 @@ class PlotObj {
 	//members
 	Point2D CG_; //Center of object. Object will rotate w.r.t. this point.
 	Point2D dir_; //Direction vector which object is pointing (defines forward).
-	std::vector<Point2D> shape_boundary; //Vector of points which define plotted shape. Must start and end at the same point
+	std::vector<Point2D> polygon_; //Polygon which define plotted shape. Must start and end at the same point
 	double rad_collision; //Radius of collision with center of circle at CG_
 	double speed_; //Speed that object can more each frame
-
-	//methods
-	void rot2D(const double& theta); //Rotate object by theta [rad] about CG
-	void trans(); //Translates object in the direction it is pointing by its speed
 
 	public:
 	//constructors
 	PlotObj();
-	PlotObj(BoundaryShapes shape);
+	PlotObj(const double& x_start, const double& y_start, const BoundaryPoly& shape, const double& spd);
 	~PlotObj();
 
 	//methods
 	void Plot() const; //Plots the current object boundary
+	void Rot2D(const double& theta); //Rotate object by theta [rad] about CG
+	void Move(); //Translates object in the direction it is pointing by its speed
 };
 
 } // namespace geometry
