@@ -13,7 +13,27 @@ namespace zerkola {
 	const double kPLAYER_START_X = 75.0; //default starting x position for player
 	const double kAI_START_X = 25.0; //default starting x position for AI
 	const double kSTART_Y = 50.0; //default starting y position for both tanks
+	const double kMISSLE_SPEED = 2; //default missile speed
+	const double kTANK_LONG_SPEED = 1; //default tank speed
+	const double kTANK_ROT_SPEED = 0.1; //default tank speed
 	//Constants
+
+	class Missile : public geometry::PlotObj {
+		//Missile object
+		private:
+		//members
+		const double kLENGTH = 2;
+		const double kWIDTH = 1;
+		double long_move_speed_; //Longitudinal speed that the object can more each frame
+
+		public:
+		//constructors
+		Missile();
+		Missile(const double& x, const double& y, const double& spd);
+		~Missile();
+		//methods
+		void Move(const bool& frwd); //Translates object in the corresonding direction by its longitudinal speed
+	};
 
 	class Tank : public geometry::PlotObj {
 		//Tank object
@@ -27,23 +47,12 @@ namespace zerkola {
 		public:
 		//constructors
 		Tank();
-		Tank(const double& long_spd, const double& rot_spd);
+		Tank(const double& x, const double& y);
 		~Tank();
 		//methods
 		void Rot2D(const bool& ccw); //Rotate object by the rotation speed in the directio indicated
 		void Move(const bool& frwd); //Translates object in the corresonding direction by its longitudinal speed
-		void Fire(); 
-	};
-
-	class Missile : public geometry::PlotObj {
-		//Missile object
-		private:
-
-		public:
-		//constructors
-		Missile();
-		Missile(const double& spd);
-		~Missile();
+		Missile* Fire(); //Fires a missle and returns pointer to it
 	};
 
 	class Zerkola {
@@ -56,6 +65,7 @@ namespace zerkola {
 		long primary_fig_num_; //Number to access primary plot figure
 		Tank tank_player; //Tank for the player
 		Tank tank_AI; //Tank for the AI
+		std::list<Missile*> missiles_; //List of active missiles in game
 
 		//methods
 		void init_plot(); //Initialize plot and format

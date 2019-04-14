@@ -1,10 +1,42 @@
 #include <zerkola.h>
 
 namespace zerkola {
+
+	//Missile
+	Missile::Missile(): long_move_speed_(kMISSLE_SPEED) {};
+
+	Missile::Missile(const double& x, const double& y, const double& spd): geometry::PlotObj(x,y), long_move_speed_(kMISSLE_SPEED) {
+		polygon_.clear();
+		polygon_.emplace_back(CG_.x()-kWIDTH/2.0,CG_.y()-kLENGTH/2);
+		polygon_.emplace_back(CG_.x()-kWIDTH/2.0,CG_.y()+kLENGTH/2);
+		polygon_.emplace_back(CG_.x()+kWIDTH/2.0,CG_.y()+kLENGTH/2);
+		polygon_.emplace_back(CG_.x()+kWIDTH/2.0,CG_.y()-kLENGTH/2);
+		polygon_.emplace_back(CG_.x()-kWIDTH/2.0,CG_.y()-kLENGTH/2);
+		//Assert that start and end points are the same
+		assert((polygon_.front().x() == polygon_.back().x()) && (polygon_.front().y() == polygon_.back().y()));
+	};
+
+	Missile::~Missile() {};
+
+	void Missile::Move(const bool& frwd) {
+		//Confirm that dir_ is normalized
+		dir_.normalize();
+		double spd = long_move_speed_;
+		if (!frwd) spd *= -1.0;
+		Eigen::Vector2d mvmnt_vec = dir_* spd;
+		CG_ += mvmnt_vec;
+		for (auto it = polygon_.begin(); it != polygon_.end(); ++it) {
+			(*it) += mvmnt_vec;
+		}
+		//TODO: Check if this would violate boundaries and adjust
+		return;
+	}
+	//Missile
+
 	//Tank
 	Tank::Tank() {};
 
-	Tank::Tank(const double& long_spd, const double& rot_spd): geometry::PlotObj(), long_move_speed_(long_spd), rot_move_speed_(rot_spd) {
+	Tank::Tank(const double& x, const double& y): geometry::PlotObj(x,y), long_move_speed_(kTANK_LONG_SPEED), rot_move_speed_(kTANK_ROT_SPEED) {
 		polygon_.clear();
 		polygon_.emplace_back(CG_.x()-kWIDTH/2.0,CG_.y()-kLENGTH/2);
 		polygon_.emplace_back(CG_.x()-kWIDTH/2.0,CG_.y()+kLENGTH/2);
@@ -14,6 +46,8 @@ namespace zerkola {
 		//Assert that start and end points are the same
 		assert((polygon_.front().x() == polygon_.back().x()) && (polygon_.front().y() == polygon_.back().y()));
 	}
+
+	Tank::~Tank() {};
 	
 	void Tank::Rot2D(const bool& ccw) {
 		Eigen::Rotation2Dd rot = rot_move_speed_;
@@ -40,18 +74,28 @@ namespace zerkola {
 		//TODO: Check if this would violate boundaries and adjust
 		return;
 	}
-	//Tank
 
-	//Missile
-	//Missile
+	Missile* Tank::Fire() {
+		Missile* mssl_ptr = new Missile(CG_.x(),CG_.y(),kMISSLE_SPEED);
+		return (mssl_ptr);
+	}
+	//Tank
 
 	//Zerkola
 	Zerkola::Zerkola(): kNorthLimit_(100.0), kEastLimit_(100.0), kSouthLimit_(0.0), kWestLimit_(0.0),
 			kGameBoardBoundaryX_{kNorthLimit_,kNorthLimit_,kSouthLimit_,kSouthLimit_,kNorthLimit_},
 			kGameBoardBoundaryY_{kWestLimit_,kEastLimit_,kEastLimit_,kWestLimit_,kWestLimit_},
-			primary_fig_num_(0){};
+			primary_fig_num_(0),
+			tank_player(kPLAYER_START_X,kSTART_Y),
+			tank_AI(kAI_START_X,kSTART_Y) 
+			{};
 
-	Zerkola::~Zerkola() {};
+	Zerkola::~Zerkola() {
+		for (auto it = missiles_.begin(); it != missiles_.end(); ++it) {
+			delete (*it);
+		}
+		return;
+	};
 
 	void Zerkola::init_plot() {
 		primary_fig_num_ = plt::figure();
@@ -87,6 +131,7 @@ namespace zerkola {
 			case ' ':
 				//Space bar
 				printw("You pressed Space!\n");
+				missiles_.push_back(tank_player.Fire());
 				break;
 		}
 		flushinp(); //Flush input buffer
@@ -103,7 +148,6 @@ namespace zerkola {
 		//Initialize plot
 		init_plot();
 		//Instantiate game pieces
-		geometry::PlotObj tank_player(50,50,geometry::BoundaryPoly::kTank,1.0,0.1);
 		while (true) {
 			//Clear plot
 			plt::cla();
@@ -111,9 +155,17 @@ namespace zerkola {
 			plt::plot(kGameBoardBoundaryX_,kGameBoardBoundaryY_);
 			plt::tight_layout();
 			//Get player input
+			player_input();
 			//Run AI move
 			//Plot objects
 			tank_player.Plot();
+			tank_AI.Plot();
+			for (auto it = missiles_.begin(); it != missiles_.end(); ++it) {
+				//Move missile first
+				(*it)->Move(true);
+				//Plot
+				(*it)->Plot();
+			}
 			//Plot			
 			plt::pause(1/kDRAW_FREQ);
 		}
