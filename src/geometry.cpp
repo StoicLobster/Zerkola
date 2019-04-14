@@ -2,40 +2,26 @@
 
 namespace geometry {
 
-//Point2D
-Point2D::Point2D(): point_(0.0,0.0) {};
-
-Point2D::Point2D(const double x, const double y): point_(x,y) {};
-
-Point2D::~Point2D() {};
-
-double Point2D::EucDist(const Point2D& other_point) const {
-	Eigen::Vector2d v(this->x() - other_point.x(), this->y() - other_point.y());
-	return (v.norm());
-}
-//Point2D
-
 //PlotObj
-PlotObj::PlotObj(): CG_(0.0,0.0), dir_(0.0,0.0), rad_collision(0.0), speed_(0.0) {};
+PlotObj::PlotObj(): CG_(0.0,0.0), dir_(0.0,0.0), rad_collision(0.0), long_speed_(0.0), rot_speed_(0.0) {};
 
-PlotObj::PlotObj(const double& x_start, const double& y_start, const BoundaryPoly& shape, const double& spd):
+PlotObj::PlotObj(const double& x_start, const double& y_start, const BoundaryPoly& shape, const double& long_spd, const double& rot_spd):
 	CG_(x_start,y_start),
-	dir_(0.0,0.0),
-	speed_(spd)
+	dir_(0.0,1.0),
+	long_speed_(long_spd),
+	rot_speed_(rot_spd)
 	{
-		
-
 		polygon_.clear();
 		switch (shape) {
 		case BoundaryPoly::kTank: {
 			//Tank Shape
-			const double kLength = 3;
-			const double kWidth = 2;
-			polygon_.emplace_back(CG_.x()-kWidth/2.0,CG_.y()-kLength/2);
-			polygon_.emplace_back(CG_.x()-kWidth/2.0,CG_.y()+kLength/2);
-			polygon_.emplace_back(CG_.x()+kWidth/2.0,CG_.y()+kLength/2);
-			polygon_.emplace_back(CG_.x()+kWidth/2.0,CG_.y()-kLength/2);
-			polygon_.emplace_back(CG_.x()-kWidth/2.0,CG_.y()-kLength/2);
+			const double kLENGTH = 4;
+			const double kWIDTH = 2;
+			polygon_.emplace_back(CG_.x()-kWIDTH/2.0,CG_.y()-kLENGTH/2);
+			polygon_.emplace_back(CG_.x()-kWIDTH/2.0,CG_.y()+kLENGTH/2);
+			polygon_.emplace_back(CG_.x()+kWIDTH/2.0,CG_.y()+kLENGTH/2);
+			polygon_.emplace_back(CG_.x()+kWIDTH/2.0,CG_.y()-kLENGTH/2);
+			polygon_.emplace_back(CG_.x()-kWIDTH/2.0,CG_.y()-kLENGTH/2);
 			break;
 		}
 		case BoundaryPoly::kMissile: {
@@ -52,7 +38,8 @@ PlotObj::PlotObj(const double& x_start, const double& y_start, const BoundaryPol
 		//Determine radius for collision detection for given shape
 		rad_collision = 0.0;
 		for (auto it = polygon_.begin(); it != polygon_.end(); ++it) {
-			double curr_dist = it->EucDist(CG_.x(),CG_.y());
+			Eigen::Vector2d v = (*it) - CG_;
+			double curr_dist = v.norm();
 			if (curr_dist > rad_collision) {
 				rad_collision = curr_dist;
 			}
@@ -76,11 +63,30 @@ void PlotObj::Plot() const {
 	return;
 }
 
-void PlotObj::Move() {
-	CG_.set_y(CG_.y() + speed_);
+void PlotObj::Rot2D(const bool& ccw) {
+	Eigen::Rotation2Dd rot = rot_speed_;
+	if (!ccw) rot = rot.inverse();
+	dir_ = rot*dir_;
+	dir_.normalize();
 	for (auto it = polygon_.begin(); it != polygon_.end(); ++it) {
-		it->set_y(it->y() + speed_);
+		Eigen::Vector2d v = (*it) - CG_;
+		(*it) = rot*v + CG_;
 	}
+	return;
+}
+
+void PlotObj::Move(const bool& frwd) {
+	//Confirm that dir_ is normalized
+	dir_.normalize();
+	double spd = long_speed_;
+	if (!frwd) spd *= -1.0;
+	Eigen::Vector2d mvmnt_vec = dir_* spd;
+	CG_ += mvmnt_vec;
+	for (auto it = polygon_.begin(); it != polygon_.end(); ++it) {
+		(*it) += mvmnt_vec;
+	}
+	//TODO: Check if this would violate boundaries and adjust
+	return;
 }
 //PlotObj
 
