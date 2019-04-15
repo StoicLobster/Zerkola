@@ -5,7 +5,7 @@ namespace zerkola {
 	//Missile
 	Missile::Missile(): long_move_speed_(kMISSLE_SPEED) {};
 
-	Missile::Missile(const double& x, const double& y, const double& spd): geometry::PlotObj(x,y), long_move_speed_(kMISSLE_SPEED) {
+	Missile::Missile(const double& x, const double& y, const double& spd, const Eigen::Vector2d& tank_dir): geometry::PlotObj(x,y), long_move_speed_(kMISSLE_SPEED) {
 		polygon_.clear();
 		polygon_.emplace_back(CG_.x()-kWIDTH/2.0,CG_.y()-kLENGTH/2);
 		polygon_.emplace_back(CG_.x()-kWIDTH/2.0,CG_.y()+kLENGTH/2);
@@ -14,9 +14,27 @@ namespace zerkola {
 		polygon_.emplace_back(CG_.x()-kWIDTH/2.0,CG_.y()-kLENGTH/2);
 		//Assert that start and end points are the same
 		assert((polygon_.front().x() == polygon_.back().x()) && (polygon_.front().y() == polygon_.back().y()));
+		//Align missile with tank
+		rot2D_align(tank_dir);
+		return;
 	};
 
 	Missile::~Missile() {};
+
+	void Missile::rot2D_align(const Eigen::Vector2d& tank_dir) {
+		//Calculate required angle of rotation between missile direction and tank direction
+		double ang = acos(dir_.dot(tank_dir)/(tank_dir.norm()*dir_.norm()));
+		Eigen::Rotation2Dd rot(ang);
+		//Change direction
+		dir_ = rot*dir_;
+		dir_.normalize();
+		//Perform rotation on polygon
+		for (auto it = polygon_.begin(); it != polygon_.end(); ++it) {
+			Eigen::Vector2d v = (*it) - CG_;
+			(*it) = rot*v + CG_;
+		}
+		return;
+	}
 
 	void Missile::Move(const bool& frwd) {
 		//Confirm that dir_ is normalized
@@ -54,6 +72,7 @@ namespace zerkola {
 		if (!ccw) rot = rot.inverse();
 		dir_ = rot*dir_;
 		dir_.normalize();
+		//Perform rotation on polygon
 		for (auto it = polygon_.begin(); it != polygon_.end(); ++it) {
 			Eigen::Vector2d v = (*it) - CG_;
 			(*it) = rot*v + CG_;
@@ -76,7 +95,7 @@ namespace zerkola {
 	}
 
 	Missile* Tank::Fire() {
-		Missile* mssl_ptr = new Missile(CG_.x(),CG_.y(),kMISSLE_SPEED);
+		Missile* mssl_ptr = new Missile(CG_.x(),CG_.y(),kMISSLE_SPEED,dir_);
 		return (mssl_ptr);
 	}
 	//Tank

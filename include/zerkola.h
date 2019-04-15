@@ -5,6 +5,7 @@
 #include <vector>
 #include <ncurses.h>
 #include <list>
+#include <math.h>
 
 namespace plt = matplotlibcpp;
 namespace zerkola {
@@ -25,11 +26,13 @@ namespace zerkola {
 		const double kLENGTH = 2;
 		const double kWIDTH = 1;
 		double long_move_speed_; //Longitudinal speed that the object can more each frame
+		//methods
+		void rot2D_align(const Eigen::Vector2d& tank_dir); //rotates the missile to align with the tank direction (tank_dir)
 
 		public:
 		//constructors
 		Missile();
-		Missile(const double& x, const double& y, const double& spd);
+		Missile(const double& x, const double& y, const double& spd, const Eigen::Vector2d& tank_dir);
 		~Missile();
 		//methods
 		void Move(const bool& frwd); //Translates object in the corresonding direction by its longitudinal speed
@@ -50,8 +53,8 @@ namespace zerkola {
 		Tank(const double& x, const double& y);
 		~Tank();
 		//methods
-		void Rot2D(const bool& ccw); //Rotate object by the rotation speed in the directio indicated
 		void Move(const bool& frwd); //Translates object in the corresonding direction by its longitudinal speed
+		void Rot2D(const bool& ccw); //Rotate object by the rotation speed in the directio indicated
 		Missile* Fire(); //Fires a missle and returns pointer to it
 	};
 
