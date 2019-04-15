@@ -7,6 +7,7 @@
 #include <matplotlibcpp.h>
 #include <iostream>
 #include <Eigen/Dense>
+#include <string>
 
 namespace geometry {
 
@@ -23,17 +24,19 @@ namespace geometry {
 		Eigen::Vector2d dir_; //Direction vector which object is pointing (defines forward). Always normalized.
 		std::vector<Eigen::Vector2d> polygon_; //Polygon which define plotted shape. Must start and end at the same point
 		double rad_collision_; //Radius of collision with center of circle at CG_
+		std::string color_; //color of object
 		//methods
 		void calc_rad_collision(); //Calculates radius of collision for given polygon_
 
 		public:
 		//constructors
 		PlotObj();
-		PlotObj(const double& x_start, const double& y_start);
+		PlotObj(const double& x_start, const double& y_start,const std::string& color="k");
 		~PlotObj();
 
 		//methods
 		void Plot() const; //Plots the current object boundary
+		bool CheckBoundaryCollision(const double& NorthLimit_, const double& EastLimit_, const double& SouthLimit_, const double& WestLimit_) const; //Checks if PlotObj collided with boundary
 	};
 
 } // namespace geometry

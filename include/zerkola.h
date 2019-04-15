@@ -6,8 +6,9 @@
 #include <ncurses.h>
 #include <list>
 #include <math.h>
+#include <string>
 
-#define DEBUG
+//#define DEBUG
 
 namespace plt = matplotlibcpp;
 namespace zerkola {
@@ -19,6 +20,8 @@ namespace zerkola {
 	const double kMISSLE_SPEED = 2; //default missile speed
 	const double kTANK_LONG_SPEED = 1; //default tank speed
 	const double kTANK_ROT_SPEED = 0.1; //default tank speed
+	const std::string kPLAYER_COLOR = "b"; //Player is blue
+	const std::string kAI_COLOR = "r"; //AI is red
 	//Constants
 
 	class Missile : public geometry::PlotObj {
@@ -38,6 +41,7 @@ namespace zerkola {
 		~Missile();
 		//methods
 		void Move(const bool& frwd); //Translates object in the corresonding direction by its longitudinal speed
+		void Ricochet(); //Moves the missile to a pose immediately after a ricochet.
 	};
 
 	class Tank : public geometry::PlotObj {
@@ -47,12 +51,13 @@ namespace zerkola {
 		const double kLENGTH = 4;
 		const double kWIDTH = 2;
 		double long_move_speed_; //Longitudinal speed that the object can more each frame
+		//methods
 		Eigen::Rotation2Dd rot_move_speed_; //Rotational speed that the object can more each frame
 
 		public:
 		//constructors
 		Tank();
-		Tank(const double& x, const double& y);
+		Tank(const double& x, const double& y,const std::string& color);
 		~Tank();
 		//methods
 		void Move(const bool& frwd); //Translates object in the corresonding direction by its longitudinal speed
@@ -61,7 +66,7 @@ namespace zerkola {
 	};
 
 	class Zerkola {
-
+		//Game class itself
 		private:
 		//members
 		const double kNorthLimit_, kEastLimit_, kSouthLimit_, kWestLimit_; //Limits of game board in North, South, East, West
@@ -71,10 +76,10 @@ namespace zerkola {
 		Tank tank_player; //Tank for the player
 		Tank tank_AI; //Tank for the AI
 		std::list<Missile*> missiles_; //List of active missiles in game
-
 		//methods
 		void init_plot(); //Initialize plot and format
 		void player_input(); //Gets player input and updates player tank accordingly
+		bool check_ricochet(Missile* missile); //Returns TRUE if given Missile has collided with boundary. Returns missle in new orientation if ricochet occurred.
 
 		public:
 		//constructors

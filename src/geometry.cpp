@@ -3,9 +3,9 @@
 namespace geometry {
 
 //PlotObj
-PlotObj::PlotObj(): CG_(0.0,0.0), dir_(0.0,0.0), rad_collision_(0.0) {};
+PlotObj::PlotObj(): CG_(0.0,0.0), dir_(0.0,0.0), rad_collision_(0.0), color_("k") {};
 
-PlotObj::PlotObj(const double& x_start, const double& y_start): CG_(x_start,y_start), dir_(0.0,1.0) {};
+PlotObj::PlotObj(const double& x_start, const double& y_start, const std::string& color): CG_(x_start,y_start), dir_(0.0,1.0), color_(color) {};
 
 PlotObj::~PlotObj() {};
 
@@ -32,8 +32,17 @@ void PlotObj::Plot() const {
 		shape_x.push_back(it->x());
 		shape_y.push_back(it->y());
 	}
-	plt::plot(shape_x,shape_y);
+	plt::plot(shape_x,shape_y,color_);
 	return;
+}
+
+bool PlotObj::CheckBoundaryCollision(const double& NorthLimit_, const double& EastLimit_, const double& SouthLimit_, const double& WestLimit_) const {
+	double TL, BL, LL, RL;
+	TL = CG_.y() + rad_collision_;
+	BL = CG_.y() - rad_collision_;
+	LL = CG_.x() - rad_collision_;
+	RL = CG_.x() + rad_collision_;
+	return ((TL >= NorthLimit_) || (BL <= SouthLimit_) || (LL <= WestLimit_) || (RL >= EastLimit_));
 }
 //PlotObj
 

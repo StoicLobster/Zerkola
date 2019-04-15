@@ -60,7 +60,7 @@ namespace zerkola {
 	//Tank
 	Tank::Tank() {};
 
-	Tank::Tank(const double& x, const double& y): geometry::PlotObj(x,y), long_move_speed_(kTANK_LONG_SPEED), rot_move_speed_(kTANK_ROT_SPEED) {
+	Tank::Tank(const double& x, const double& y,const std::string& color): geometry::PlotObj(x,y,color), long_move_speed_(kTANK_LONG_SPEED), rot_move_speed_(kTANK_ROT_SPEED) {
 		polygon_.clear();
 		polygon_.emplace_back(CG_.x()-kWIDTH/2.0,CG_.y()-kLENGTH/2);
 		polygon_.emplace_back(CG_.x()-kWIDTH/2.0,CG_.y()+kLENGTH/2);
@@ -111,8 +111,8 @@ namespace zerkola {
 			kGameBoardBoundaryX_{kNorthLimit_,kNorthLimit_,kSouthLimit_,kSouthLimit_,kNorthLimit_},
 			kGameBoardBoundaryY_{kWestLimit_,kEastLimit_,kEastLimit_,kWestLimit_,kWestLimit_},
 			primary_fig_num_(0),
-			tank_player(kPLAYER_START_X,kSTART_Y),
-			tank_AI(kAI_START_X,kSTART_Y) 
+			tank_player(kPLAYER_START_X,kSTART_Y,kPLAYER_COLOR),
+			tank_AI(kAI_START_X,kSTART_Y,kAI_COLOR) 
 			{};
 
 	Zerkola::~Zerkola() {
@@ -136,31 +136,38 @@ namespace zerkola {
 				getch(); // skip [
 				switch (getch()) {
 					case 'A':
-						printw("You pressed Up!\n");
+						//printw("You pressed Up!\n");
 						tank_player.Move(true);
 						break;
 					case 'B':
-						printw("You pressed Down!\n");
+						//printw("You pressed Down!\n");
 						tank_player.Move(false);
 						break;
 					case 'C':
-						printw("You pressed Right!\n");
+						//printw("You pressed Right!\n");
 						tank_player.Rot2D(false);
 						break;
 					case 'D':
-						printw("You pressed Left!\n");
+						//printw("You pressed Left!\n");
 						tank_player.Rot2D(true);
 						break;
 				}
 				break;
 			case ' ':
 				//Space bar
-				printw("You pressed Space!\n");
+				//printw("You pressed Space!\n");
 				missiles_.push_back(tank_player.Fire());
 				break;
 		}
 		flushinp(); //Flush input buffer
 		return;
+	}
+
+	bool Zerkola::check_ricochet(Missile* missile) {
+		bool ricochet = false;
+		//Check if missile has collided with boundary
+		ricochet = missile->CheckBoundaryCollision(kNorthLimit_, kEastLimit_, kSouthLimit_, kWestLimit_);
+		return(ricochet);
 	}
 
 	void Zerkola::Run() {
@@ -177,7 +184,7 @@ namespace zerkola {
 			//Clear plot
 			plt::cla();
 			plt::axis("off");
-			plt::plot(kGameBoardBoundaryX_,kGameBoardBoundaryY_);
+			plt::plot(kGameBoardBoundaryX_,kGameBoardBoundaryY_, "k");
 			plt::tight_layout();
 			//Get player input
 			player_input();
@@ -186,8 +193,10 @@ namespace zerkola {
 			tank_player.Plot();
 			tank_AI.Plot();
 			for (auto it = missiles_.begin(); it != missiles_.end(); ++it) {
-				//Move missile first
+				//Move missile tentatively
 				(*it)->Move(true);
+				//Check for ricochet
+				check_ricochet(*it);				
 				//Plot
 				(*it)->Plot();
 			}
