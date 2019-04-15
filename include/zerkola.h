@@ -7,6 +7,8 @@
 #include <list>
 #include <math.h>
 
+#define DEBUG
+
 namespace plt = matplotlibcpp;
 namespace zerkola {
 	//Constants

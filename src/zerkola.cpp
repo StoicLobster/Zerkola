@@ -23,7 +23,13 @@ namespace zerkola {
 
 	void Missile::rot2D_align(const Eigen::Vector2d& tank_dir) {
 		//Calculate required angle of rotation between missile direction and tank direction
-		double ang = acos(dir_.dot(tank_dir)/(tank_dir.norm()*dir_.norm()));
+		double dot, det, ang;
+		dot = dir_.dot(tank_dir);
+		det = dir_.x()*tank_dir.y() - dir_.y()*tank_dir.x();
+		ang = atan2(det,dot);
+		#ifdef DEBUG
+			printw("Align angle: %f", ang);
+		#endif
 		Eigen::Rotation2Dd rot(ang);
 		//Change direction
 		dir_ = rot*dir_;
