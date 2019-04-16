@@ -7,6 +7,7 @@
 #include <list>
 #include <math.h>
 #include <string>
+#include <utility>
 
 //#define DEBUG
 
@@ -40,7 +41,7 @@ namespace zerkola {
 		Missile(const double& x, const double& y, const double& spd, const Eigen::Vector2d& tank_dir);
 		~Missile();
 		//methods
-		void Move(const bool& frwd); //Translates object in the corresonding direction by its longitudinal speed
+		void Move(const double& NorthLimit, const double& EastLimit, const double& SouthLimit, const double& WestLimit); //Translates object in the corresonding direction by its longitudinal speed. If missile would collide with boundary, instead will calculate ricochet.
 		void Ricochet(); //Moves the missile to a pose immediately after a ricochet.
 	};
 

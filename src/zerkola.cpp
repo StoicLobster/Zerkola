@@ -42,17 +42,29 @@ namespace zerkola {
 		return;
 	}
 
-	void Missile::Move(const bool& frwd) {
+	void Missile::Move(const double& NorthLimit, const double& EastLimit, const double& SouthLimit, const double& WestLimit) {
+		//Move missile
 		//Confirm that dir_ is normalized
 		dir_.normalize();
-		double spd = long_move_speed_;
-		if (!frwd) spd *= -1.0;
-		Eigen::Vector2d mvmnt_vec = dir_* spd;
+		Eigen::Vector2d mvmnt_vec = dir_* long_move_speed_;
 		CG_ += mvmnt_vec;
 		for (auto it = polygon_.begin(); it != polygon_.end(); ++it) {
 			(*it) += mvmnt_vec;
 		}
-		//TODO: Check if this would violate boundaries and adjust
+		//Check if this violates boundary
+		geometry::LimCollision col_type = geometry::LimCollision::None;
+		if (CheckBoundaryCollision(NorthLimit,EastLimit,SouthLimit,WestLimit,col_type)) {
+			//Solve for lambda at intersection of system of two vectors:
+			//A = [x_a0, y_a0] + lambda * [x_a, y_a]
+			//B = [x_b0, y_b0] + gamma * [x_b, y_b]
+			//Ricochet
+			std::vector< std::pair< Eigen::Vector2d , Eigen::Vector2d > > Lims; //Parameteric vector equation for each limit L = [A] + [B]*t
+			Lims.emplace_back(0,0,NorthLimit,1.0,0.0);
+			Lims.emplace_back(EastLimit,0.0,0.0,1.0);
+			Lims.emplace_back(WestLimit,0.0,0.0,1.0);
+			Lims.emplace_back(0.0,SouthLimit,1.0,0.0);
+			//Calculate intersection point of missile direction and boundary limits
+		}
 		return;
 	}
 	//Missile
@@ -167,6 +179,9 @@ namespace zerkola {
 		bool ricochet = false;
 		//Check if missile has collided with boundary
 		ricochet = missile->CheckBoundaryCollision(kNorthLimit_, kEastLimit_, kSouthLimit_, kWestLimit_);
+		if (ricochet) {
+			//Calculate where
+		}
 		return(ricochet);
 	}
 

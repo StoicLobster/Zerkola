@@ -36,13 +36,30 @@ void PlotObj::Plot() const {
 	return;
 }
 
-bool PlotObj::CheckBoundaryCollision(const double& NorthLimit_, const double& EastLimit_, const double& SouthLimit_, const double& WestLimit_) const {
+bool PlotObj::CheckBoundaryCollision(const double& NorthLimit, const double& EastLimit, const double& SouthLimit, const double& WestLimit, LimCollision& type_col) const {
 	double TL, BL, LL, RL;
+	bool outpt = false;
 	TL = CG_.y() + rad_collision_;
 	BL = CG_.y() - rad_collision_;
 	LL = CG_.x() - rad_collision_;
 	RL = CG_.x() + rad_collision_;
-	return ((TL >= NorthLimit_) || (BL <= SouthLimit_) || (LL <= WestLimit_) || (RL >= EastLimit_));
+	type_col = LimCollision::None;
+
+	if (TL >= NorthLimit) {
+		outpt = true;
+		type_col = LimCollision::NorthCollision;
+	} else if (BL <= SouthLimit) {
+		outpt = true;
+		type_col = LimCollision::SouthCollision;
+	} else if (LL <= WestLimit) {
+		outpt = true;
+		type_col = LimCollision::WestCollision;
+	} else if (RL >= EastLimit) {
+		outpt = true;
+		type_col = LimCollision::EastCollision;
+	}
+
+	return (outpt);
 }
 //PlotObj
 
