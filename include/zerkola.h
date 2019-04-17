@@ -54,6 +54,9 @@ namespace zerkola {
 		double long_move_speed_; //Longitudinal speed that the object can more each frame
 		//methods
 		Eigen::Rotation2Dd rot_move_speed_; //Rotational speed that the object can more each frame
+		void move(const bool& frwd); //Translates object in the corresonding direction by its longitudinal speed
+		void rot2D(const bool& ccw); //Rotate object by the rotation speed in the directio indicated
+		Missile* fire(); //Fires a missle and returns pointer to it
 
 		public:
 		//constructors
@@ -61,9 +64,8 @@ namespace zerkola {
 		Tank(const double& x, const double& y,const std::string& color);
 		~Tank();
 		//methods
-		void Move(const bool& frwd); //Translates object in the corresonding direction by its longitudinal speed
-		void Rot2D(const bool& ccw); //Rotate object by the rotation speed in the directio indicated
-		Missile* Fire(); //Fires a missle and returns pointer to it
+		Missile* Turn(); //Executes turn of the tank. This method should be overriden for AI classes. Default turn is for player. Returns any missiles fired.
+
 	};
 
 	class Zerkola {
@@ -79,7 +81,6 @@ namespace zerkola {
 		std::list<Missile*> missiles_; //List of active missiles in game
 		//methods
 		void init_plot(); //Initialize plot and format
-		void player_input(); //Gets player input and updates player tank accordingly
 		bool check_ricochet(Missile* missile); //Returns TRUE if given Missile has collided with boundary. Returns missle in new orientation if ricochet occurred.
 
 		public:

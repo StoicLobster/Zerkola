@@ -46,24 +46,7 @@ namespace geometry {
 		bool CheckBoundaryCollision(const double& NorthLimit, const double& EastLimit, const double& SouthLimit, const double& WestLimit, LimCollision& type_col) const; //Checks if PlotObj collided with boundary
 	};
 
-	bool VectorIntersection(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am, const Eigen::Vector2d& B0, const Eigen::Vector2d& Bm, double& lambda, double& xi, double& yi) {
-		//Solve for lambda at intersection of system of two vectors:
-		//A = A0 + lambda * Am
-		//A = [x_a0, y_a0] + lambda * [x_a, y_a]
-		//B = B0 + gamma * Bm
-		//B = [x_b0, y_b0] + gamma * [x_b, y_b]
-		//If vectors are parallel, returns false (det([Am Bm]) == 0)
-		double det_m = Am.x()*Bm.y() - Am.y()*Bm.x();
-		if (det_m == 0) {
-			//Parallel
-			return (false);
-		} else {
-			//Find intersection
-			lambda = Bm.x()*(A0.y() - B0.y()) - Bm.y()*(A0.x() - B0.x()) / det_m;
-			//TODO: calculate xi / yi
-			return true;
-		}
-	}
+	bool VectorIntersection(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am, const Eigen::Vector2d& B0, const Eigen::Vector2d& Bm, double& lambda, Eigen::Vector2d& I);
 
 } // namespace geometry
 

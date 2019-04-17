@@ -54,10 +54,44 @@ namespace zerkola {
 		//Check if this violates boundary
 		geometry::LimCollision col_type = geometry::LimCollision::None;
 		if (CheckBoundaryCollision(NorthLimit,EastLimit,SouthLimit,WestLimit,col_type)) {
-			//Solve for lambda at intersection of system of two vectors:
-			//A = [x_a0, y_a0] + lambda * [x_a, y_a]
-			//B = [x_b0, y_b0] + gamma * [x_b, y_b]
 			//Ricochet
+			//Determine boundary vector to use
+			Eigen::Vector2d B0, Bm;
+			switch (col_type) {
+				case geometry::LimCollision::NorthCollision:
+					B0.x = 0.0;
+					B0.y = NorthLimit;
+					Bm.x = 1.0;
+					Bm.y = 0.0;
+					break;
+				case geometry::LimCollision::EastCollision:
+					B0.x = EastLimit;
+					B0.y = 0.0;
+					Bm.x = 0.0;
+					Bm.y = 1.0;
+					break;
+				case geometry::LimCollision::SouthCollision:
+					B0.x = 0.0;
+					B0.y = SouthLimit;
+					Bm.x = 1.0;
+					Bm.y = 0.0;
+					break;
+				case geometry::LimCollision::WestCollision:
+					B0.x = WestLimit;
+					B0.y = 0.0;
+					Bm.x = 0.0;
+					Bm.y = 1.0;
+					break;
+			}
+
+			//Calculate intersection point I
+			Eigen::Vector2d I;
+			double lambda;
+			if ( geometry::VectorIntersection(CG_,dir_,B0,Bm,lambda,I) ) {
+				//non-parallel
+
+			}
+
 			std::vector< std::pair< Eigen::Vector2d , Eigen::Vector2d > > Lims; //Parameteric vector equation for each limit L = [A] + [B]*t
 			Lims.emplace_back(0,0,NorthLimit,1.0,0.0);
 			Lims.emplace_back(EastLimit,0.0,0.0,1.0);
@@ -85,7 +119,7 @@ namespace zerkola {
 
 	Tank::~Tank() {};
 	
-	void Tank::Rot2D(const bool& ccw) {
+	void Tank::rot2D(const bool& ccw) {
 		Eigen::Rotation2Dd rot = rot_move_speed_;
 		if (!ccw) rot = rot.inverse();
 		dir_ = rot*dir_;
@@ -98,7 +132,7 @@ namespace zerkola {
 		return;
 	}
 
-	void Tank::Move(const bool& frwd) {
+	void Tank::move(const bool& frwd) {
 		//Confirm that dir_ is normalized
 		dir_.normalize();
 		double spd = long_move_speed_;
@@ -112,9 +146,45 @@ namespace zerkola {
 		return;
 	}
 
-	Missile* Tank::Fire() {
+	Missile* Tank::fire() {
 		Missile* mssl_ptr = new Missile(CG_.x(),CG_.y(),kMISSLE_SPEED,dir_);
 		return (mssl_ptr);
+	}
+
+	Missile* Tank::Turn() {
+		Missile* mssl_ptr = nullptr;
+		//Read player input
+		switch (getch()) {
+			case '\033': 
+				//Escape char used for arrow keys
+				getch(); // skip [
+				switch (getch()) {
+					case 'A':
+						//printw("You pressed Up!\n");
+						move(true);
+						break;
+					case 'B':
+						//printw("You pressed Down!\n");
+						move(false);
+						break;
+					case 'C':
+						//printw("You pressed Right!\n");
+						rot2D(false);
+						break;
+					case 'D':
+						//printw("You pressed Left!\n");
+						rot2D(true);
+						break;
+				}
+				break;
+			case ' ':
+				//Space bar
+				//printw("You pressed Space!\n");
+				mssl_ptr = fire();
+				break;
+		}
+		flushinp(); //Flush input buffer
+		return(mssl_ptr);
 	}
 	//Tank
 
@@ -137,41 +207,6 @@ namespace zerkola {
 	void Zerkola::init_plot() {
 		primary_fig_num_ = plt::figure();
 		plt::axis("off");
-		return;
-	}
-
-	void Zerkola::player_input() {
-		//Read player input	
-		switch (getch()) {
-			case '\033': 
-				//Escape char used for arrow keys
-				getch(); // skip [
-				switch (getch()) {
-					case 'A':
-						//printw("You pressed Up!\n");
-						tank_player.Move(true);
-						break;
-					case 'B':
-						//printw("You pressed Down!\n");
-						tank_player.Move(false);
-						break;
-					case 'C':
-						//printw("You pressed Right!\n");
-						tank_player.Rot2D(false);
-						break;
-					case 'D':
-						//printw("You pressed Left!\n");
-						tank_player.Rot2D(true);
-						break;
-				}
-				break;
-			case ' ':
-				//Space bar
-				//printw("You pressed Space!\n");
-				missiles_.push_back(tank_player.Fire());
-				break;
-		}
-		flushinp(); //Flush input buffer
 		return;
 	}
 
@@ -201,9 +236,9 @@ namespace zerkola {
 			plt::axis("off");
 			plt::plot(kGameBoardBoundaryX_,kGameBoardBoundaryY_, "k");
 			plt::tight_layout();
-			//Get player input
-			player_input();
-			//Run AI move
+			//Run Player turn
+			tank_player.Turn();
+			//Run AI turn
 			//Plot objects
 			tank_player.Plot();
 			tank_AI.Plot();
