@@ -3,15 +3,15 @@
 namespace zerkola {
 
 	//Missile
-	Missile::Missile(): long_move_speed_(kMISSLE_SPEED) {};
+	Missile::Missile(): long_move_speed_(MISSLE_SPEED) {};
 
-	Missile::Missile(const double& x, const double& y, const double& spd, const Eigen::Vector2d& tank_dir): geometry::PlotObj(x,y), long_move_speed_(kMISSLE_SPEED) {
+	Missile::Missile(const double& x, const double& y, const double& spd, const Eigen::Vector2d& tank_dir): geometry::PlotObj(x,y), long_move_speed_(MISSLE_SPEED) {
 		polygon_.clear();
-		polygon_.emplace_back(CG_.x()-kWIDTH/2.0,CG_.y()-kLENGTH/2);
-		polygon_.emplace_back(CG_.x()-kWIDTH/2.0,CG_.y()+kLENGTH/2);
-		polygon_.emplace_back(CG_.x()+kWIDTH/2.0,CG_.y()+kLENGTH/2);
-		polygon_.emplace_back(CG_.x()+kWIDTH/2.0,CG_.y()-kLENGTH/2);
-		polygon_.emplace_back(CG_.x()-kWIDTH/2.0,CG_.y()-kLENGTH/2);
+		polygon_.emplace_back(CG_.x()-WIDTH/2.0,CG_.y()-LENGTH/2);
+		polygon_.emplace_back(CG_.x()-WIDTH/2.0,CG_.y()+LENGTH/2);
+		polygon_.emplace_back(CG_.x()+WIDTH/2.0,CG_.y()+LENGTH/2);
+		polygon_.emplace_back(CG_.x()+WIDTH/2.0,CG_.y()-LENGTH/2);
+		polygon_.emplace_back(CG_.x()-WIDTH/2.0,CG_.y()-LENGTH/2);
 		//Assert that start and end points are the same
 		assert((polygon_.front().x() == polygon_.back().x()) && (polygon_.front().y() == polygon_.back().y()));
 		//Align missile with tank
@@ -21,11 +21,22 @@ namespace zerkola {
 
 	Missile::~Missile() {};
 
-	void Missile::rot2D_align(const Eigen::Vector2d& tank_dir) {
-		//Calculate required angle of rotation between missile direction and tank direction
+	void Missile::translate() {
+		//Confirm that dir_ is normalized
+		dir_.normalize();
+		Eigen::Vector2d mvmnt_vec = dir_* long_move_speed_;
+		CG_ += mvmnt_vec;
+		for (auto it = polygon_.begin(); it != polygon_.end(); ++it) {
+			(*it) += mvmnt_vec;
+		}
+		return;
+	}
+
+	void Missile::rotate_align(const Eigen::Vector2d& dir) {
+		//Calculate required angle of rotation between missile direction and desired direction
 		double dot, det, ang;
-		dot = dir_.dot(tank_dir);
-		det = dir_.x()*tank_dir.y() - dir_.y()*tank_dir.x();
+		dot = dir_.dot(dir);
+		det = dir_.x()*dir.y() - dir_.y()*dir.x();
 		ang = atan2(det,dot);
 		#ifdef DEBUG
 			printw("Align angle: %f", ang);
@@ -43,61 +54,54 @@ namespace zerkola {
 	}
 
 	void Missile::Move(const double& NorthLimit, const double& EastLimit, const double& SouthLimit, const double& WestLimit) {
-		//Move missile
-		//Confirm that dir_ is normalized
-		dir_.normalize();
-		Eigen::Vector2d mvmnt_vec = dir_* long_move_speed_;
-		CG_ += mvmnt_vec;
-		for (auto it = polygon_.begin(); it != polygon_.end(); ++it) {
-			(*it) += mvmnt_vec;
-		}
+		//translate missile
+		translate();
 		//Check if this violates boundary
 		geometry::LimCollision col_type = geometry::LimCollision::None;
 		if (CheckBoundaryCollision(NorthLimit,EastLimit,SouthLimit,WestLimit,col_type)) {
 			//Ricochet
 			//Determine boundary vector to use
-			Eigen::Vector2d B0, Bm;
+			Eigen::Vector2d B0, Bm, ricochet_dir = dir_;
 			switch (col_type) {
 				case geometry::LimCollision::NorthCollision:
 					B0.x = 0.0;
 					B0.y = NorthLimit;
 					Bm.x = 1.0;
 					Bm.y = 0.0;
+					ricochet_dir.y *= -1;
 					break;
 				case geometry::LimCollision::EastCollision:
 					B0.x = EastLimit;
 					B0.y = 0.0;
 					Bm.x = 0.0;
 					Bm.y = 1.0;
+					ricochet_dir.x *= -1;
 					break;
 				case geometry::LimCollision::SouthCollision:
 					B0.x = 0.0;
 					B0.y = SouthLimit;
 					Bm.x = 1.0;
 					Bm.y = 0.0;
+					ricochet_dir.y *= -1;
 					break;
 				case geometry::LimCollision::WestCollision:
 					B0.x = WestLimit;
 					B0.y = 0.0;
 					Bm.x = 0.0;
 					Bm.y = 1.0;
+					ricochet_dir.x *= -1;
 					break;
 			}
 
-			//Calculate intersection point I
+			//Calculate intersection point I and assign to CG if not parallel
 			Eigen::Vector2d I;
 			double lambda;
 			if ( geometry::VectorIntersection(CG_,dir_,B0,Bm,lambda,I) ) {
 				//non-parallel
-
+				CG_ = I;
+				//Rotate missile to richochet direction
+				rotate_align(ricochet_dir);
 			}
-
-			std::vector< std::pair< Eigen::Vector2d , Eigen::Vector2d > > Lims; //Parameteric vector equation for each limit L = [A] + [B]*t
-			Lims.emplace_back(0,0,NorthLimit,1.0,0.0);
-			Lims.emplace_back(EastLimit,0.0,0.0,1.0);
-			Lims.emplace_back(WestLimit,0.0,0.0,1.0);
-			Lims.emplace_back(0.0,SouthLimit,1.0,0.0);
-			//Calculate intersection point of missile direction and boundary limits
 		}
 		return;
 	}
@@ -106,13 +110,13 @@ namespace zerkola {
 	//Tank
 	Tank::Tank() {};
 
-	Tank::Tank(const double& x, const double& y,const std::string& color): geometry::PlotObj(x,y,color), long_move_speed_(kTANK_LONG_SPEED), rot_move_speed_(kTANK_ROT_SPEED) {
+	Tank::Tank(const double& x, const double& y,const std::string& color): geometry::PlotObj(x,y,color), long_move_speed_(TANK_LONG_SPEED), rot_move_speed_(TANK_ROT_SPEED) {
 		polygon_.clear();
-		polygon_.emplace_back(CG_.x()-kWIDTH/2.0,CG_.y()-kLENGTH/2);
-		polygon_.emplace_back(CG_.x()-kWIDTH/2.0,CG_.y()+kLENGTH/2);
-		polygon_.emplace_back(CG_.x()+kWIDTH/2.0,CG_.y()+kLENGTH/2);
-		polygon_.emplace_back(CG_.x()+kWIDTH/2.0,CG_.y()-kLENGTH/2);
-		polygon_.emplace_back(CG_.x()-kWIDTH/2.0,CG_.y()-kLENGTH/2);
+		polygon_.emplace_back(CG_.x()-WIDTH/2.0,CG_.y()-LENGTH/2);
+		polygon_.emplace_back(CG_.x()-WIDTH/2.0,CG_.y()+LENGTH/2);
+		polygon_.emplace_back(CG_.x()+WIDTH/2.0,CG_.y()+LENGTH/2);
+		polygon_.emplace_back(CG_.x()+WIDTH/2.0,CG_.y()-LENGTH/2);
+		polygon_.emplace_back(CG_.x()-WIDTH/2.0,CG_.y()-LENGTH/2);
 		//Assert that start and end points are the same
 		assert((polygon_.front().x() == polygon_.back().x()) && (polygon_.front().y() == polygon_.back().y()));
 	}
@@ -147,12 +151,11 @@ namespace zerkola {
 	}
 
 	Missile* Tank::fire() {
-		Missile* mssl_ptr = new Missile(CG_.x(),CG_.y(),kMISSLE_SPEED,dir_);
+		Missile* mssl_ptr = new Missile(CG_.x(),CG_.y(),MISSLE_SPEED,dir_);
 		return (mssl_ptr);
 	}
 
-	Missile* Tank::Turn() {
-		Missile* mssl_ptr = nullptr;
+	virtual void Tank::Turn(std::list<Missile*>& missiles) {
 		//Read player input
 		switch (getch()) {
 			case '\033': 
@@ -180,22 +183,31 @@ namespace zerkola {
 			case ' ':
 				//Space bar
 				//printw("You pressed Space!\n");
-				mssl_ptr = fire();
+				missiles.push_back(fire());
 				break;
 		}
 		flushinp(); //Flush input buffer
-		return(mssl_ptr);
+		return;
 	}
 	//Tank
 
+	//SkyNet
+	void SkyNet::Turn(std::list<Missile*>& missiles) {
+		return;
+	}
+	//SkyNet
+
 	//Zerkola
-	Zerkola::Zerkola(): kNorthLimit_(100.0), kEastLimit_(100.0), kSouthLimit_(0.0), kWestLimit_(0.0),
-			kGameBoardBoundaryX_{kNorthLimit_,kNorthLimit_,kSouthLimit_,kSouthLimit_,kNorthLimit_},
-			kGameBoardBoundaryY_{kWestLimit_,kEastLimit_,kEastLimit_,kWestLimit_,kWestLimit_},
-			primary_fig_num_(0),
-			tank_player(kPLAYER_START_X,kSTART_Y,kPLAYER_COLOR),
-			tank_AI(kAI_START_X,kSTART_Y,kAI_COLOR) 
-			{};
+	Zerkola::Zerkola(): NorthLimit_(100.0), EastLimit_(100.0), SouthLimit_(0.0), WestLimit_(0.0),
+			GameBoardBoundaryX_{NorthLimit_,NorthLimit_,SouthLimit_,SouthLimit_,NorthLimit_},
+			GameBoardBoundaryY_{WestLimit_,EastLimit_,EastLimit_,WestLimit_,WestLimit_},
+			primary_fig_num_(0)
+			{
+				//Create base class for player A
+				tank_player_A = new Tank(PLAYER_A_START_X,START_Y,PLAYER_A_COLOR)
+				//TODO: Input selection for type of AI player
+				tank_player_B = new SkyNet(PLAYER_B_START_X,START_Y,PLAYER_B_COLOR);
+			};
 
 	Zerkola::~Zerkola() {
 		for (auto it = missiles_.begin(); it != missiles_.end(); ++it) {
@@ -213,7 +225,7 @@ namespace zerkola {
 	bool Zerkola::check_ricochet(Missile* missile) {
 		bool ricochet = false;
 		//Check if missile has collided with boundary
-		ricochet = missile->CheckBoundaryCollision(kNorthLimit_, kEastLimit_, kSouthLimit_, kWestLimit_);
+		ricochet = missile->CheckBoundaryCollision(NorthLimit_, EastLimit_, SouthLimit_, WestLimit_);
 		if (ricochet) {
 			//Calculate where
 		}
@@ -221,7 +233,7 @@ namespace zerkola {
 	}
 
 	void Zerkola::Run() {
-		//Setup ncurses
+		//Setup ncurses for user input
 		initscr();
 		cbreak(); //disables required [enter] after each keyboard input
 		noecho();
@@ -231,27 +243,28 @@ namespace zerkola {
 		init_plot();
 		//Instantiate game pieces
 		while (true) {
-			//Clear plot
+			//Reset plot
 			plt::cla();
 			plt::axis("off");
-			plt::plot(kGameBoardBoundaryX_,kGameBoardBoundaryY_, "k");
+			plt::plot(GameBoardBoundaryX_,GameBoardBoundaryY_, "k");
 			plt::tight_layout();
-			//Run Player turn
-			tank_player.Turn();
-			//Run AI turn
-			//Plot objects
-			tank_player.Plot();
-			tank_AI.Plot();
+			//Run Player A turn
+			tank_player_A->Turn(missiles_);
+			//Run Player B turn
+			tank_player_B->Turn(missiles_);
+			//Plot tanks
+			tank_player_A->Plot();
+			tank_player_B->Plot();
 			for (auto it = missiles_.begin(); it != missiles_.end(); ++it) {
-				//Move missile tentatively
-				(*it)->Move(true);
-				//Check for ricochet
-				check_ricochet(*it);				
+				//Move missile
+				(*it)->Move(true);	
+				//TODO: Check for collisions with tanks
+				//TODO: Arbitrate between missile plot or explosion plot			
 				//Plot
 				(*it)->Plot();
 			}
-			//Plot			
-			plt::pause(1/kDRAW_FREQ);
+			//Draw			
+			plt::pause(1/DRAW_FREQ);
 		}
 
 		return;

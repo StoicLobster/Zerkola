@@ -12,7 +12,7 @@
 namespace geometry {
 
 	//constants
-	const double kRAD_TO_DEG = 57.2958;
+	const double RAD_TO_DEG = 57.2958;
 	typedef enum LimCollision {
 		None,
 		NorthCollision,
