@@ -15,7 +15,7 @@ namespace zerkola {
 		//Assert that start and end points are the same
 		assert((polygon_.front().x() == polygon_.back().x()) && (polygon_.front().y() == polygon_.back().y()));
 		//Align missile with tank
-		rot2D_align(tank_dir);
+		rotate_align(tank_dir);
 		return;
 	};
 
@@ -59,45 +59,47 @@ namespace zerkola {
 		//Check if this violates boundary
 		geometry::LimCollision col_type = geometry::LimCollision::None;
 		if (CheckBoundaryCollision(NorthLimit,EastLimit,SouthLimit,WestLimit,col_type)) {
-			//Ricochet
-			//Determine boundary vector to use
+			//Determine boundary vector to use for intersection calculation
 			Eigen::Vector2d B0, Bm, ricochet_dir = dir_;
 			switch (col_type) {
 				case geometry::LimCollision::NorthCollision:
-					B0.x = 0.0;
-					B0.y = NorthLimit;
-					Bm.x = 1.0;
-					Bm.y = 0.0;
-					ricochet_dir.y *= -1;
+					B0(0) = 0.0;
+					B0(1) = NorthLimit;
+					Bm(0) = 1.0;
+					Bm(1) = 0.0;
+					ricochet_dir(1) *= -1;
 					break;
 				case geometry::LimCollision::EastCollision:
-					B0.x = EastLimit;
-					B0.y = 0.0;
-					Bm.x = 0.0;
-					Bm.y = 1.0;
-					ricochet_dir.x *= -1;
+					B0(0) = EastLimit;
+					B0(1) = 0.0;
+					Bm(0) = 0.0;
+					Bm(1) = 1.0;
+					ricochet_dir(0) *= -1;
 					break;
 				case geometry::LimCollision::SouthCollision:
-					B0.x = 0.0;
-					B0.y = SouthLimit;
-					Bm.x = 1.0;
-					Bm.y = 0.0;
-					ricochet_dir.y *= -1;
+					B0(0) = 0.0;
+					B0(1) = SouthLimit;
+					Bm(0) = 1.0;
+					Bm(1) = 0.0;
+					ricochet_dir(1) *= -1;
 					break;
 				case geometry::LimCollision::WestCollision:
-					B0.x = WestLimit;
-					B0.y = 0.0;
-					Bm.x = 0.0;
-					Bm.y = 1.0;
-					ricochet_dir.x *= -1;
+					B0(0) = WestLimit;
+					B0(1) = 0.0;
+					Bm(0) = 0.0;
+					Bm(1) = 1.0;
+					ricochet_dir(0) *= -1;
+					break;
+				case geometry::LimCollision::None:
 					break;
 			}
 
 			//Calculate intersection point I and assign to CG if not parallel
 			Eigen::Vector2d I;
 			double lambda;
-			if ( geometry::VectorIntersection(CG_,dir_,B0,Bm,lambda,I) ) {
+			if ((col_type != geometry::LimCollision::None) && (geometry::VectorIntersection(CG_,dir_,B0,Bm,lambda,I))) {
 				//non-parallel
+				//Perform ricochet
 				CG_ = I;
 				//Rotate missile to richochet direction
 				rotate_align(ricochet_dir);
@@ -123,7 +125,7 @@ namespace zerkola {
 
 	Tank::~Tank() {};
 	
-	void Tank::rot2D(const bool& ccw) {
+	void Tank::rotate(const bool& ccw) {
 		Eigen::Rotation2Dd rot = rot_move_speed_;
 		if (!ccw) rot = rot.inverse();
 		dir_ = rot*dir_;
@@ -136,7 +138,7 @@ namespace zerkola {
 		return;
 	}
 
-	void Tank::move(const bool& frwd) {
+	void Tank::translate(const bool& frwd) {
 		//Confirm that dir_ is normalized
 		dir_.normalize();
 		double spd = long_move_speed_;
@@ -155,7 +157,7 @@ namespace zerkola {
 		return (mssl_ptr);
 	}
 
-	virtual void Tank::Turn(std::list<Missile*>& missiles) {
+	void Tank::Turn(std::list<Missile*>& missiles) {
 		//Read player input
 		switch (getch()) {
 			case '\033': 
@@ -164,19 +166,19 @@ namespace zerkola {
 				switch (getch()) {
 					case 'A':
 						//printw("You pressed Up!\n");
-						move(true);
+						translate(true);
 						break;
 					case 'B':
 						//printw("You pressed Down!\n");
-						move(false);
+						translate(false);
 						break;
 					case 'C':
 						//printw("You pressed Right!\n");
-						rot2D(false);
+						rotate(false);
 						break;
 					case 'D':
 						//printw("You pressed Left!\n");
-						rot2D(true);
+						rotate(true);
 						break;
 				}
 				break;
@@ -192,6 +194,12 @@ namespace zerkola {
 	//Tank
 
 	//SkyNet
+	SkyNet::SkyNet() {};
+
+	SkyNet::SkyNet(const double& x, const double& y,const std::string& color): Tank(x, y, color) {};
+
+	SkyNet::~SkyNet() {};
+
 	void SkyNet::Turn(std::list<Missile*>& missiles) {
 		return;
 	}
@@ -204,12 +212,14 @@ namespace zerkola {
 			primary_fig_num_(0)
 			{
 				//Create base class for player A
-				tank_player_A = new Tank(PLAYER_A_START_X,START_Y,PLAYER_A_COLOR)
+				tank_player_A = new Tank(PLAYER_A_START_X,START_Y,PLAYER_A_COLOR);
 				//TODO: Input selection for type of AI player
 				tank_player_B = new SkyNet(PLAYER_B_START_X,START_Y,PLAYER_B_COLOR);
 			};
 
 	Zerkola::~Zerkola() {
+		delete tank_player_A;
+		delete tank_player_B;
 		for (auto it = missiles_.begin(); it != missiles_.end(); ++it) {
 			delete (*it);
 		}
@@ -220,16 +230,6 @@ namespace zerkola {
 		primary_fig_num_ = plt::figure();
 		plt::axis("off");
 		return;
-	}
-
-	bool Zerkola::check_ricochet(Missile* missile) {
-		bool ricochet = false;
-		//Check if missile has collided with boundary
-		ricochet = missile->CheckBoundaryCollision(NorthLimit_, EastLimit_, SouthLimit_, WestLimit_);
-		if (ricochet) {
-			//Calculate where
-		}
-		return(ricochet);
 	}
 
 	void Zerkola::Run() {
@@ -257,7 +257,7 @@ namespace zerkola {
 			tank_player_B->Plot();
 			for (auto it = missiles_.begin(); it != missiles_.end(); ++it) {
 				//Move missile
-				(*it)->Move(true);	
+				(*it)->Move(NorthLimit_, EastLimit_, SouthLimit_, WestLimit_);	
 				//TODO: Check for collisions with tanks
 				//TODO: Arbitrate between missile plot or explosion plot			
 				//Plot

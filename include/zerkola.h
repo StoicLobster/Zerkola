@@ -25,7 +25,7 @@ namespace zerkola {
 	const std::string PLAYER_B_COLOR = "r"; //Player B is red
 
 	typedef enum AI_List {
-		SkyNet
+		AI_SkyNet
 	} AI_List;
 	//Constants
 
@@ -51,7 +51,7 @@ namespace zerkola {
 
 	class Tank : public geometry::PlotObj {
 		//Tank object
-		private:
+		protected:
 		//members
 		const double LENGTH = 4;
 		const double WIDTH = 2;
@@ -66,17 +66,20 @@ namespace zerkola {
 		//constructors
 		Tank();
 		Tank(const double& x, const double& y,const std::string& color);
-		~Tank();
+		virtual ~Tank();
 		//methods
 		virtual void Turn(std::list<Missile*>& missiles); //Executes turn of the tank. This method should be overriden for AI classes. Default turn is for player. If a missile was fired, adds it to the list.
 
 	};
 
-	class SkyNet : public Tank final {
+	class SkyNet : public Tank {
 		//AI enemy
 		public:
+		SkyNet();
+		SkyNet(const double& x, const double& y,const std::string& color);
+		~SkyNet();
 		void Turn(std::list<Missile*>& missiles);
-	}
+	};
 
 	class Zerkola {
 		//Game class itself
@@ -91,7 +94,6 @@ namespace zerkola {
 		std::list<Missile*> missiles_; //List of active missiles in game
 		//methods
 		void init_plot(); //Initialize plot and format
-		bool check_ricochet(Missile* missile); //Returns TRUE if given Missile has collided with boundary. Returns missle in new orientation if ricochet occurred.
 
 		public:
 		//constructors
