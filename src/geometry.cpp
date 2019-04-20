@@ -76,7 +76,7 @@ bool VectorIntersection(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am, co
 			return (false);
 		} else {
 			//Find intersection
-			lambda = Bm.x()*(A0.y() - B0.y()) - Bm.y()*(A0.x() - B0.x()) / det_m;
+			lambda = (Bm.x()*(A0.y() - B0.y()) - Bm.y()*(A0.x() - B0.x())) / det_m;
 			I = A0 + lambda * Am;
 			return (true);
 		}

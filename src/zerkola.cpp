@@ -55,33 +55,62 @@ namespace zerkola {
 
 	void Missile::Move(const double& NorthLimit, const double& EastLimit, const double& SouthLimit, const double& WestLimit) {
 		//Define boundary with vectors
-		std::list<std::make_pair<Eigen::Vector2d>> boundaries;
+		std::list<std::pair<Eigen::Vector2d,Eigen::Vector2d>> boundaries;
 		// <B0 , Bm>
-		boundaries.emplace_back(0,NorthLimit,1,0);
-		boundaries.emplace_back(EastLimit,0,0,1);
-		boundaries.empalce_back(0,SouthLimit,1,0);
-		boundaries.emplace_back(WestLimit,0,0,1);
+		Eigen::Vector2d B0, Bm;
+		B0(0) = 0;
+		B0(1) = NorthLimit;
+		Bm(0) = 1;
+		Bm(1) = 0;
+		boundaries.push_back(std::make_pair(B0,Bm));
+		B0(0) = EastLimit;
+		B0(1) = 0;
+		Bm(0) = 0;
+		Bm(1) = 1;
+		boundaries.push_back(std::make_pair(B0,Bm));
+		B0(0) = 0;
+		B0(1) = SouthLimit;
+		Bm(0) = 1;
+		Bm(1) = 0;
+		boundaries.push_back(std::make_pair(B0,Bm));
+		B0(0) = WestLimit;
+		B0(1) = 0;
+		Bm(0) = 0;
+		Bm(1) = 1;
+		boundaries.push_back(std::make_pair(B0,Bm));
 		//Determine closest intersection point
 		double intersect_dist = sqrt( pow((NorthLimit-SouthLimit),2) + pow((EastLimit-WestLimit),2) );
 		Eigen::Vector2d intersect_pt;
+		//printw("==START==\n");
 		for (auto& bdry : boundaries) {
+			//printw("==BDRY==\n");
 			Eigen::Vector2d I;
 			double lambda;
-			if (geometry::VectorIntersection(CG_,dir_,B0,Bm,lambda,I)) {
+			if (geometry::VectorIntersection(CG_,dir_,bdry.first,bdry.second,lambda,I)) {
 				//non-parallel
-				double tmp_dist = (I - CG_).norm();
-				if (tmp_dist < intersect_dist) {
-					intersect_dist = tmp_dist;
+				//printw("CG point: ( %f , %f )\n", CG_(0), CG_(1));
+				//printw("I point: ( %f , %f )\n", I(0), I(1));
+				//printw("lambda: %f\n", lambda);
+				//Eigen::Vector2d tmp = I - CG_;
+				//double tmp_dist = tmp.norm();
+				//printw("tmp_dist: %f\n", tmp_dist);
+				if ((lambda > 0) && (lambda < intersect_dist)) {
+					intersect_dist = lambda;
 					intersect_pt = I;
 				}
 			}
 		}
+		//printw("==END==\n");
 		//Determine if missile is colliding with boundary
-		if (intersect_dist <= rad_collision_) {
+		//printw("Intersect Distance: %f\n", intersect_dist);
+		//printw("CG point: ( %f , %f )\n", CG_(0), CG_(1));
+		//printw("Intersect point: ( %f , %f )\n", intersect_pt(0), intersect_pt(1));
+		//Check if missile would begin colliding by end of this turn
+		if ((intersect_dist -long_move_speed_) <= rad_collision_) {
 			//translate missile to intersection point
 			CG_ = intersect_pt;
 			//Determine ricochet direction
-			Eigen::Vector2d ricochet_dir;
+			Eigen::Vector2d ricochet_dir = dir_;
 			if ((intersect_pt(0) == WestLimit) || (intersect_pt(0) == EastLimit)) ricochet_dir(0) *= -1;
 			if ((intersect_pt(1) == SouthLimit) || (intersect_pt(1) == NorthLimit)) ricochet_dir(1) *= -1;
 			//Rotate missile to richochet direction
@@ -138,6 +167,7 @@ namespace zerkola {
 	}
 
 	Missile* Tank::fire() {
+		//TODO: Make sure only one missile can fire on a turn.
 		Missile* mssl_ptr = new Missile(CG_.x(),CG_.y(),MISSLE_SPEED,dir_);
 		return (mssl_ptr);
 	}
@@ -236,17 +266,20 @@ namespace zerkola {
 			//Run Player A turn
 			tank_player_A->Turn(missiles_);
 			//Run Player B turn
-			tank_player_B->Turn(missiles_);
+			//TODO: tank_player_B->Turn(missiles_);
 			//Plot tanks
 			tank_player_A->Plot();
 			tank_player_B->Plot();
+			//int mssl_cnt = 0;
 			for (auto it = missiles_.begin(); it != missiles_.end(); ++it) {
+				//printw("Missile #%i\n",mssl_cnt);
 				//Move missile
 				(*it)->Move(NorthLimit_, EastLimit_, SouthLimit_, WestLimit_);	
 				//TODO: Check for collisions with tanks
 				//TODO: Arbitrate between missile plot or explosion plot			
 				//Plot
 				(*it)->Plot();
+				//++mssl_cnt;
 			}
 			//Draw			
 			plt::pause(1/DRAW_FREQ);
