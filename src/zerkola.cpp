@@ -54,56 +54,41 @@ namespace zerkola {
 	}
 
 	void Missile::Move(const double& NorthLimit, const double& EastLimit, const double& SouthLimit, const double& WestLimit) {
-		//translate missile
-		translate();
-		//Check if this violates boundary
-		geometry::LimCollision col_type = geometry::LimCollision::None;
-		if (CheckBoundaryCollision(NorthLimit,EastLimit,SouthLimit,WestLimit,col_type)) {
-			//Determine boundary vector to use for intersection calculation
-			Eigen::Vector2d B0, Bm, ricochet_dir = dir_;
-			switch (col_type) {
-				case geometry::LimCollision::NorthCollision:
-					B0(0) = 0.0;
-					B0(1) = NorthLimit;
-					Bm(0) = 1.0;
-					Bm(1) = 0.0;
-					ricochet_dir(1) *= -1;
-					break;
-				case geometry::LimCollision::EastCollision:
-					B0(0) = EastLimit;
-					B0(1) = 0.0;
-					Bm(0) = 0.0;
-					Bm(1) = 1.0;
-					ricochet_dir(0) *= -1;
-					break;
-				case geometry::LimCollision::SouthCollision:
-					B0(0) = 0.0;
-					B0(1) = SouthLimit;
-					Bm(0) = 1.0;
-					Bm(1) = 0.0;
-					ricochet_dir(1) *= -1;
-					break;
-				case geometry::LimCollision::WestCollision:
-					B0(0) = WestLimit;
-					B0(1) = 0.0;
-					Bm(0) = 0.0;
-					Bm(1) = 1.0;
-					ricochet_dir(0) *= -1;
-					break;
-				case geometry::LimCollision::None:
-					break;
-			}
-
-			//Calculate intersection point I and assign to CG if not parallel
+		//Define boundary with vectors
+		std::list<std::make_pair<Eigen::Vector2d>> boundaries;
+		// <B0 , Bm>
+		boundaries.emplace_back(0,NorthLimit,1,0);
+		boundaries.emplace_back(EastLimit,0,0,1);
+		boundaries.empalce_back(0,SouthLimit,1,0);
+		boundaries.emplace_back(WestLimit,0,0,1);
+		//Determine closest intersection point
+		double intersect_dist = sqrt( pow((NorthLimit-SouthLimit),2) + pow((EastLimit-WestLimit),2) );
+		Eigen::Vector2d intersect_pt;
+		for (auto& bdry : boundaries) {
 			Eigen::Vector2d I;
 			double lambda;
-			if ((col_type != geometry::LimCollision::None) && (geometry::VectorIntersection(CG_,dir_,B0,Bm,lambda,I))) {
+			if (geometry::VectorIntersection(CG_,dir_,B0,Bm,lambda,I)) {
 				//non-parallel
-				//Perform ricochet
-				CG_ = I;
-				//Rotate missile to richochet direction
-				rotate_align(ricochet_dir);
+				double tmp_dist = (I - CG_).norm();
+				if (tmp_dist < intersect_dist) {
+					intersect_dist = tmp_dist;
+					intersect_pt = I;
+				}
 			}
+		}
+		//Determine if missile is colliding with boundary
+		if (intersect_dist <= rad_collision_) {
+			//translate missile to intersection point
+			CG_ = intersect_pt;
+			//Determine ricochet direction
+			Eigen::Vector2d ricochet_dir;
+			if ((intersect_pt(0) == WestLimit) || (intersect_pt(0) == EastLimit)) ricochet_dir(0) *= -1;
+			if ((intersect_pt(1) == SouthLimit) || (intersect_pt(1) == NorthLimit)) ricochet_dir(1) *= -1;
+			//Rotate missile to richochet direction
+			rotate_align(ricochet_dir);
+		} else {
+			//Normal move
+			translate();
 		}
 		return;
 	}
