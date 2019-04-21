@@ -1,6 +1,7 @@
 # Don't track content of these folders
 .vscode/ipch/*
-/bin/	
+bin/	
+bin/*
 
 # Compiled source #
 ###################
