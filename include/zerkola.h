@@ -23,6 +23,12 @@ namespace zerkola {
 	const double TANK_ROT_SPEED = 0.1; //default tank speed
 	const std::string PLAYER_A_COLOR = "b"; //Player A is blue
 	const std::string PLAYER_B_COLOR = "r"; //Player B is red
+	//Board Boundaries
+	const double WEST_LIMIT = 0;
+	const double EAST_LIMIT = 100;
+	const double SOUTH_LIMIT = 0;
+	const double NORTH_LIMIT = 100;
+	const double PLT_MRGN = 0.01*(NORTH_LIMIT - SOUTH_LIMIT); //margins for plot
 
 	typedef enum AI_List {
 		AI_SkyNet
@@ -37,8 +43,8 @@ namespace zerkola {
 		const double WIDTH = 1;
 		double long_move_speed_; //Longitudinal speed that the object can more each frame
 		//methods
-		void translate(); //Translates object in the corresonding direction by its longitudinal speed
-		void rotate_align(const Eigen::Vector2d& dir); //rotates the missile to align with the given direction
+		void translate(const double& dist); //Translates object in the current direction by given distance
+		void rotate_align(const Eigen::Vector2d& dir_align); //rotates the missile to align with the given direction
 
 		public:
 		//constructors
@@ -46,7 +52,7 @@ namespace zerkola {
 		Missile(const double& x, const double& y, const double& spd, const Eigen::Vector2d& tank_dir);
 		~Missile();
 		//methods
-		void Move(const double& NorthLimit, const double& EastLimit, const double& SouthLimit, const double& WestLimit); //Moves missile. If missile would collide with boundary, instead will calculate ricochet.
+		void Move(); //Moves missile. If missile would collide with boundary, instead will calculate ricochet.
 	};
 
 	class Tank : public geometry::PlotObj {
@@ -55,12 +61,13 @@ namespace zerkola {
 		//members
 		const double LENGTH = 4;
 		const double WIDTH = 2;
+		bool turn_taken_; //indicate that turn was taken
 		double long_move_speed_; //Longitudinal speed that the object can more each frame
 		//methods
 		Eigen::Rotation2Dd rot_move_speed_; //Rotational speed that the object can more each frame
 		void translate(const bool& frwd); //Translates object in the corresonding direction by its longitudinal speed
 		void rotate(const bool& ccw); //Rotate object by the rotation speed in the directio indicated
-		Missile* fire(); //Fires a missle and returns pointer to it
+		void fire(std::list<Missile*>& missiles); //Fires a missle and adds it to missile list
 
 		public:
 		//constructors
@@ -69,7 +76,7 @@ namespace zerkola {
 		virtual ~Tank();
 		//methods
 		virtual void Turn(std::list<Missile*>& missiles); //Executes turn of the tank. This method should be overriden for AI classes. Default turn is for player. If a missile was fired, adds it to the list.
-
+		inline void ResetTurn() { turn_taken_ = false; }; //Simply resets turn taken tracker
 	};
 
 	class SkyNet : public Tank {
@@ -85,7 +92,6 @@ namespace zerkola {
 		//Game class itself
 		private:
 		//members
-		const double NorthLimit_, EastLimit_, SouthLimit_, WestLimit_; //Limits of game board in North, South, East, West
 		const std::vector<double> GameBoardBoundaryX_; //Limits of game board x axis
 		const std::vector<double> GameBoardBoundaryY_; //Limits of game board y axis
 		long primary_fig_num_; //Number to access primary plot figure

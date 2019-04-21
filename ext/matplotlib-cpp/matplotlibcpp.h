@@ -1376,22 +1376,6 @@ inline void axis(const std::string &axisstr)
     Py_DECREF(res);
 }
 
-inline void axis(const double& x_min, const double& x_max, const double& y_min, const double& y_max)
-{
-    //axis command to adjust limits
-    PyObject* args = PyTuple_New(4);
-    PyTuple_SetItem(args, 0, PyFloat_FromDouble(x_min));
-    PyTuple_SetItem(args, 1, PyFloat_FromDouble(x_max));
-    PyTuple_SetItem(args, 2, PyFloat_FromDouble(y_min));
-    PyTuple_SetItem(args, 2, PyFloat_FromDouble(y_max));
-
-    PyObject* res = PyObject_CallObject(detail::_interpreter::get().s_python_function_axis, args);
-    if(!res) throw std::runtime_error("Call to axis(lims) failed.");
-
-    Py_DECREF(args);
-    Py_DECREF(res);
-}
-
 inline void xlabel(const std::string &str, const std::map<std::string, std::string> &keywords = {})
 {
     PyObject* pystr = PyString_FromString(str.c_str());
