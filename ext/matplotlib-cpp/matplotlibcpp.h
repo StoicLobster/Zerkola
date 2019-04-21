@@ -183,6 +183,7 @@ private:
         s_python_function_save = PyObject_GetAttrString(pylabmod, "savefig");
         s_python_function_annotate = PyObject_GetAttrString(pymod,"annotate");
         s_python_function_clf = PyObject_GetAttrString(pymod, "clf");
+        s_python_function_cla = PyObject_GetAttrString(pymod, "cla");
         s_python_function_errorbar = PyObject_GetAttrString(pymod, "errorbar");
         s_python_function_tight_layout = PyObject_GetAttrString(pymod, "tight_layout");
         s_python_function_stem = PyObject_GetAttrString(pymod, "stem");
@@ -218,6 +219,7 @@ private:
             || !s_python_function_ginput
             || !s_python_function_save
             || !s_python_function_clf
+            || !s_python_function_cla
             || !s_python_function_annotate
             || !s_python_function_errorbar
             || !s_python_function_errorbar
@@ -257,6 +259,7 @@ private:
             || !PyFunction_Check(s_python_function_ginput)
             || !PyFunction_Check(s_python_function_save)
             || !PyFunction_Check(s_python_function_clf)
+            || !PyFunction_Check(s_python_function_cla)
             || !PyFunction_Check(s_python_function_tight_layout)
             || !PyFunction_Check(s_python_function_errorbar)
             || !PyFunction_Check(s_python_function_stem)
@@ -1523,7 +1526,17 @@ inline void clf() {
     Py_DECREF(res);
 }
 
-    inline void ion() {
+inline void cla() {
+    PyObject *res = PyObject_CallObject(
+        detail::_interpreter::get().s_python_function_cla,
+        detail::_interpreter::get().s_python_empty_tuple);
+
+    if (!res) throw std::runtime_error("Call to cla() failed.");
+
+    Py_DECREF(res);
+}
+
+inline void ion() {
     PyObject *res = PyObject_CallObject(
         detail::_interpreter::get().s_python_function_ion,
         detail::_interpreter::get().s_python_empty_tuple);
