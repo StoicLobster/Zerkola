@@ -8,18 +8,11 @@
 #include <iostream>
 #include <Eigen/Dense>
 #include <string>
+#include <ncurses.h>
 
 namespace geometry {
 
 	//constants
-	const double RAD_TO_DEG = 57.2958;
-	typedef enum LimCollision {
-		None,
-		NorthCollision,
-		EastCollision,
-		SouthCollision,
-		WestCollision
-	} LimCollision;
 	//constants
 
 	class PlotObj {
@@ -27,13 +20,14 @@ namespace geometry {
 		//Object will have CG point and pose (Pose2D) as well as plotted shape (plot_shape) and collision circle radius (rad_col)
 		protected:
 		//members
-		Eigen::Vector2d CG_; //Center of object. Object will rotate w.r.t. this point.
-		Eigen::Vector2d dir_; //Direction vector which object is pointing (defines forward). Always normalized.
-		std::vector<Eigen::Vector2d> polygon_; //Polygon which define plotted shape. Must start and end at the same point
-		double rad_collision_; //Radius of collision with center of circle at CG_
-		std::string color_; //color of object
+		Eigen::Vector2d _center; //Center of object. Object will rotate w.r.t. this point.
+		Eigen::Vector2d _dir; //Direction vector which object is pointing (defines forward). Always normalized.
+		std::vector<Eigen::Vector2d> _polygon; //Polygon which define plotted shape. Must start and end at the same point
+		double _rad_collision; //Radius of collision with center of circle at CG_
+		std::string _color; //color of object
+		bool _collision_active; //Indicates that object is active for collision detection
 		//methods
-		void calc_rad_collision(); //Calculates radius of collision for given polygon_
+		void _calc_rad_collision(); //Calculates radius of collision for given polygon_
 
 		public:
 		//constructors
@@ -43,7 +37,10 @@ namespace geometry {
 
 		//methods
 		void Plot() const; //Plots the current object boundary
-		bool CheckBoundaryCollision(const double& NorthLimit, const double& EastLimit, const double& SouthLimit, const double& WestLimit, LimCollision& type_col) const; //Checks if PlotObj collided with boundary
+		inline Eigen::Vector2d center() const { return(_center); };
+		inline double rad_collision() const { return(_rad_collision); };
+		inline double collision_active() const { return(_collision_active); }; 
+		bool CheckCollision(const PlotObj& obj) const; //Checks if this object collides with given object
 	};
 
 	bool VectorIntersection(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am, const Eigen::Vector2d& B0, const Eigen::Vector2d& Bm, double& lambda, Eigen::Vector2d& I);

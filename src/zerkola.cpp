@@ -3,57 +3,64 @@
 namespace zerkola {
 
 	//Missile
-	Missile::Missile(): long_move_speed_(MISSLE_SPEED) {};
+	Missile::Missile(): _long_move_speed(MISSLE_SPEED) {};
 
-	Missile::Missile(const double& x, const double& y, const double& spd, const Eigen::Vector2d& tank_dir): geometry::PlotObj(x,y), long_move_speed_(MISSLE_SPEED) {
-		polygon_.clear();
-		polygon_.emplace_back(CG_.x()-WIDTH/2.0,CG_.y()-LENGTH/2);
-		polygon_.emplace_back(CG_.x()-WIDTH/2.0,CG_.y()+LENGTH/2);
-		polygon_.emplace_back(CG_.x()+WIDTH/2.0,CG_.y()+LENGTH/2);
-		polygon_.emplace_back(CG_.x()+WIDTH/2.0,CG_.y()-LENGTH/2);
-		polygon_.emplace_back(CG_.x()-WIDTH/2.0,CG_.y()-LENGTH/2);
+	Missile::Missile(const double& x, const double& y, const double& spd, const Eigen::Vector2d& tank_dir): 
+	geometry::PlotObj(x,y), 
+	_long_move_speed(MISSLE_SPEED),
+	_travel_dist(0.0)
+	{
+		_polygon.clear();
+		_polygon.emplace_back(_center.x()-_WIDTH/2.0,_center.y()-_LENGTH/2);
+		_polygon.emplace_back(_center.x()-_WIDTH/2.0,_center.y()+_LENGTH/2);
+		_polygon.emplace_back(_center.x()+_WIDTH/2.0,_center.y()+_LENGTH/2);
+		_polygon.emplace_back(_center.x()+_WIDTH/2.0,_center.y()-_LENGTH/2);
+		_polygon.emplace_back(_center.x()-_WIDTH/2.0,_center.y()-_LENGTH/2);
 		//Assert that start and end points are the same
-		assert((polygon_.front().x() == polygon_.back().x()) && (polygon_.front().y() == polygon_.back().y()));
+		assert((_polygon.front().x() == _polygon.back().x()) && (_polygon.front().y() == _polygon.back().y()));
+		//Calculate radius of collision
+		_calc_rad_collision();
 		//Align missile with tank
-		rotate_align(tank_dir);
+		_rotate_align(tank_dir);
 		return;
 	};
 
 	Missile::~Missile() {};
 
-	void Missile::translate(const double& dist) {
+	void Missile::_translate(const double& dist) {
 		//Confirm that dir_ is normalized
-		dir_.normalize();
-		Eigen::Vector2d mvmnt_vec = dir_* dist;
-		CG_ += mvmnt_vec;
-		for (auto it = polygon_.begin(); it != polygon_.end(); ++it) {
+		_dir.normalize();
+		Eigen::Vector2d mvmnt_vec = _dir* dist;
+		_center += mvmnt_vec;
+		for (auto it = _polygon.begin(); it != _polygon.end(); ++it) {
 			(*it) += mvmnt_vec;
 		}
 		return;
 	}
 
-	void Missile::rotate_align(const Eigen::Vector2d& dir_align) {
+	void Missile::_rotate_align(const Eigen::Vector2d& dir_align) {
 		//Calculate required angle of rotation between missile direction and desired direction
 		double dot, det, ang;
-		dot = dir_.dot(dir_align);
-		det = dir_.x()*dir_align.y() - dir_.y()*dir_align.x();
+		dot = _dir.dot(dir_align);
+		det = _dir.x()*dir_align.y() - _dir.y()*dir_align.x();
 		ang = atan2(det,dot);
 		#ifdef DEBUG
 			printw("Align angle: %f", ang);
 		#endif
 		Eigen::Rotation2Dd rot(ang);
 		//Change direction
-		dir_ = rot*dir_;
-		dir_.normalize();
+		_dir = rot*_dir;
+		_dir.normalize();
 		//Perform rotation on polygon
-		for (auto it = polygon_.begin(); it != polygon_.end(); ++it) {
-			Eigen::Vector2d v = (*it) - CG_;
-			(*it) = rot*v + CG_;
+		for (auto it = _polygon.begin(); it != _polygon.end(); ++it) {
+			Eigen::Vector2d v = (*it) - _center;
+			(*it) = rot*v + _center;
 		}
 		return;
 	}
 
 	void Missile::Move() {
+		if (_travel_dist >= MISSILE_ACTIVE_DIST) _collision_active = true;
 		//Define boundary with vectors
 		std::list<std::pair<Eigen::Vector2d,Eigen::Vector2d>> boundaries;
 		// <B0 , Bm>
@@ -86,7 +93,7 @@ namespace zerkola {
 			//printw("==BDRY==\n");
 			Eigen::Vector2d I;
 			double lambda;
-			if (geometry::VectorIntersection(CG_,dir_,bdry.first,bdry.second,lambda,I)) {
+			if (geometry::VectorIntersection(_center,_dir,bdry.first,bdry.second,lambda,I)) {
 				//non-parallel
 				//printw("CG point: ( %f , %f )\n", CG_(0), CG_(1));
 				//printw("I point: ( %f , %f )\n", I(0), I(1));
@@ -106,22 +113,20 @@ namespace zerkola {
 		//printw("CG point: ( %f , %f )\n", CG_(0), CG_(1));
 		//printw("Intersect point: ( %f , %f )\n", intersect_pt(0), intersect_pt(1));
 		//Check if missile would begin colliding by end of this turn
-		if ((intersect_dist -long_move_speed_) <= rad_collision_) {
+		if ((intersect_dist - _long_move_speed) <= _rad_collision) {
 			//translate missile to intersection point
-			translate(intersect_dist);
+			_translate(intersect_dist);
 			//printw("CG point: ( %f , %f )\n", CG_(0), CG_(1));
 			//Determine ricochet direction
-			Eigen::Vector2d ricochet_dir = dir_;
+			Eigen::Vector2d ricochet_dir = _dir;
 			if ((intersect_pt(0) == WEST_LIMIT) || (intersect_pt(0) == EAST_LIMIT)) ricochet_dir(0) *= -1;
 			if ((intersect_pt(1) == SOUTH_LIMIT) || (intersect_pt(1) == NORTH_LIMIT)) ricochet_dir(1) *= -1;
 			//Rotate missile to richochet direction
-			rotate_align(ricochet_dir);
-			//Translate again away from boundary
-			translate(long_move_speed_);
-		} else {
-			//Normal move
-			translate(long_move_speed_);
+			_rotate_align(ricochet_dir);
 		}
+		//Move
+		_translate(_long_move_speed);		
+		_travel_dist += _long_move_speed;
 		return;
 	}
 	//Missile
@@ -129,51 +134,55 @@ namespace zerkola {
 	//Tank
 	Tank::Tank() {};
 
-	Tank::Tank(const double& x, const double& y,const std::string& color): geometry::PlotObj(x,y,color), turn_taken_(false), long_move_speed_(TANK_LONG_SPEED), rot_move_speed_(TANK_ROT_SPEED) {
-		polygon_.clear();
-		polygon_.emplace_back(CG_.x()-WIDTH/2.0,CG_.y()-LENGTH/2);
-		polygon_.emplace_back(CG_.x()-WIDTH/2.0,CG_.y()+LENGTH/2);
-		polygon_.emplace_back(CG_.x()+WIDTH/2.0,CG_.y()+LENGTH/2);
-		polygon_.emplace_back(CG_.x()+WIDTH/2.0,CG_.y()-LENGTH/2);
-		polygon_.emplace_back(CG_.x()-WIDTH/2.0,CG_.y()-LENGTH/2);
+	Tank::Tank(const double& x, const double& y,const std::string& color): geometry::PlotObj(x,y,color), _turn_taken(false), _long_move_speed(TANK_LONG_SPEED), _rot_move_speed(TANK_ROT_SPEED) {
+		_polygon.clear();
+		_polygon.emplace_back(_center.x()-_WIDTH/2.0,_center.y()-_LENGTH/2);
+		_polygon.emplace_back(_center.x()-_WIDTH/2.0,_center.y()+_LENGTH/2);
+		_polygon.emplace_back(_center.x()+_WIDTH/2.0,_center.y()+_LENGTH/2);
+		_polygon.emplace_back(_center.x()+_WIDTH/2.0,_center.y()-_LENGTH/2);
+		_polygon.emplace_back(_center.x()-_WIDTH/2.0,_center.y()-_LENGTH/2);
 		//Assert that start and end points are the same
-		assert((polygon_.front().x() == polygon_.back().x()) && (polygon_.front().y() == polygon_.back().y()));
+		assert((_polygon.front().x() == _polygon.back().x()) && (_polygon.front().y() == _polygon.back().y()));
+		//Calculate radius of collision
+		_calc_rad_collision();
+		//Set to active for collisions
+		_collision_active = true;
 	}
 
 	Tank::~Tank() {};
 	
-	void Tank::rotate(const bool& ccw) {
-		if (turn_taken_) return;
-		Eigen::Rotation2Dd rot = rot_move_speed_;
+	void Tank::_rotate(const bool& ccw) {
+		if (_turn_taken) return;
+		Eigen::Rotation2Dd rot = _rot_move_speed;
 		if (!ccw) rot = rot.inverse();
-		dir_ = rot*dir_;
-		dir_.normalize();
+		_dir = rot*_dir;
+		_dir.normalize();
 		//Perform rotation on polygon
-		for (auto it = polygon_.begin(); it != polygon_.end(); ++it) {
-			Eigen::Vector2d v = (*it) - CG_;
-			(*it) = rot*v + CG_;
+		for (auto it = _polygon.begin(); it != _polygon.end(); ++it) {
+			Eigen::Vector2d v = (*it) - _center;
+			(*it) = rot*v + _center;
 		}
 		return;
 	}
 
-	void Tank::translate(const bool& frwd) {
-		if (turn_taken_) return;
+	void Tank::_translate(const bool& frwd) {
+		if (_turn_taken) return;
 		//Confirm that dir_ is normalized
-		dir_.normalize();
-		double spd = long_move_speed_;
+		_dir.normalize();
+		double spd = _long_move_speed;
 		if (!frwd) spd *= -1.0;
-		Eigen::Vector2d mvmnt_vec = dir_* spd;
-		CG_ += mvmnt_vec;
-		for (auto it = polygon_.begin(); it != polygon_.end(); ++it) {
+		Eigen::Vector2d mvmnt_vec = _dir* spd;
+		_center += mvmnt_vec;
+		for (auto it = _polygon.begin(); it != _polygon.end(); ++it) {
 			(*it) += mvmnt_vec;
 		}
 		//TODO: Check if this would violate boundaries and adjust
 		return;
 	}
 
-	void Tank::fire(std::list<Missile*>& missiles) {
-		if (turn_taken_) return;
-		Missile* mssl_ptr = new Missile(CG_.x(),CG_.y(),MISSLE_SPEED,dir_);
+	void Tank::_fire(std::list<Missile*>& missiles) {
+		if (_turn_taken) return;
+		Missile* mssl_ptr = new Missile(_center.x(),_center.y(),MISSLE_SPEED,_dir);
 		missiles.push_back(mssl_ptr);
 		return;
 	}
@@ -187,26 +196,26 @@ namespace zerkola {
 				switch (getch()) {
 					case 'A':
 						//printw("You pressed Up!\n");
-						translate(true);
+						_translate(true);
 						break;
 					case 'B':
 						//printw("You pressed Down!\n");
-						translate(false);
+						_translate(false);
 						break;
 					case 'C':
 						//printw("You pressed Right!\n");
-						rotate(false);
+						_rotate(false);
 						break;
 					case 'D':
 						//printw("You pressed Left!\n");
-						rotate(true);
+						_rotate(true);
 						break;
 				}
 				break;
 			case ' ':
 				//Space bar
 				//printw("You pressed Space!\n");
-				fire(missiles);
+				_fire(missiles);
 				break;
 		}
 		flushinp(); //Flush input buffer
@@ -227,27 +236,33 @@ namespace zerkola {
 	//SkyNet
 
 	//Zerkola
-	Zerkola::Zerkola(): GameBoardBoundaryX_{NORTH_LIMIT,NORTH_LIMIT,SOUTH_LIMIT,SOUTH_LIMIT,NORTH_LIMIT},
-			GameBoardBoundaryY_{WEST_LIMIT,EAST_LIMIT,EAST_LIMIT,WEST_LIMIT,WEST_LIMIT},
-			primary_fig_num_(0)
+	Zerkola::Zerkola(): _game_board_boundary_x{NORTH_LIMIT,NORTH_LIMIT,SOUTH_LIMIT,SOUTH_LIMIT,NORTH_LIMIT},
+			_game_board_boundary_y{WEST_LIMIT,EAST_LIMIT,EAST_LIMIT,WEST_LIMIT,WEST_LIMIT},
+			_primary_fig_num(0)
 			{
 				//Create base class for player A
-				tank_player_A = new Tank(PLAYER_A_START_X,START_Y,PLAYER_A_COLOR);
+				_tank_player_A = new Tank(PLAYER_A_START_X,START_Y,PLAYER_A_COLOR);
 				//TODO: Input selection for type of AI player
-				tank_player_B = new SkyNet(PLAYER_B_START_X,START_Y,PLAYER_B_COLOR);
+				_tank_player_B = new SkyNet(PLAYER_B_START_X,START_Y,PLAYER_B_COLOR);
+				//Store lists of missiles
+				_missiles_all.push_back(&_missiles_player_A);
+				_missiles_all.push_back(&_missiles_player_B);
 			};
 
 	Zerkola::~Zerkola() {
-		delete tank_player_A;
-		delete tank_player_B;
-		for (auto it = missiles_.begin(); it != missiles_.end(); ++it) {
+		delete _tank_player_A;
+		delete _tank_player_B;
+		for (auto it = _missiles_player_A.begin(); it != _missiles_player_A.end(); ++it) {
+			delete (*it);
+		}
+		for (auto it = _missiles_player_B.begin(); it != _missiles_player_B.end(); ++it) {
 			delete (*it);
 		}
 		return;
 	};
 
-	void Zerkola::init_plot() {
-		primary_fig_num_ = plt::figure();
+	void Zerkola::_init_plot() {
+		_primary_fig_num = plt::figure();
 		plt::axis("off");
 		return;
 	}
@@ -260,34 +275,36 @@ namespace zerkola {
 		scrollok(stdscr, TRUE);
 		nodelay(stdscr, TRUE); //makes getch() non-blocking
 		//Initialize plot
-		init_plot();
+		_init_plot();
 		//Instantiate game pieces
 		while (true) {
 			//Reset plot
 			plt::cla();
 			plt::axis("off");
-			plt::plot(GameBoardBoundaryX_,GameBoardBoundaryY_, "k");
+			plt::plot(_game_board_boundary_x,_game_board_boundary_y, "k");
 			plt::tight_layout();
 			//Run Player A turn
-			tank_player_A->ResetTurn();
-			tank_player_A->Turn(missiles_);
+			_tank_player_A->ResetTurn();
+			_tank_player_A->Turn(_missiles_player_A);
 			//Run Player B turn
-			tank_player_B->ResetTurn();
-			tank_player_B->Turn(missiles_);
+			_tank_player_B->ResetTurn();
+			_tank_player_B->Turn(_missiles_player_B);
 			//Plot tanks
-			tank_player_A->Plot();
-			tank_player_B->Plot();
-			//int mssl_cnt = 0;
-			for (auto it = missiles_.begin(); it != missiles_.end(); ++it) {
-				//printw("Missile #%i\n",mssl_cnt);
-				//Move missile
-				(*it)->Move();	
-				//TODO: Check for collisions with tanks
-				//TODO: Arbitrate between missile plot or explosion plot			
-				//Plot
-				(*it)->Plot();
-				//++mssl_cnt;
+			_tank_player_A->Plot();
+			_tank_player_B->Plot();
+			for (auto& missile_list : _missiles_all) {
+				for (auto& missile : (*missile_list)) {
+					//printw("Missile #%i\n",mssl_cnt);
+					//Move missile
+					missile->Move();	
+					//TODO: Check for collisions with tanks
+					if (_tank_player_A->CheckCollision(*missile)) printw("HIT!\n");
+					//TODO: Arbitrate between missile plot or explosion plot			
+					//Plot
+					missile->Plot();
+				}
 			}
+
 			//Update limits
 			plt::xlim(WEST_LIMIT - PLT_MRGN, EAST_LIMIT + PLT_MRGN);
 			plt::ylim( SOUTH_LIMIT - PLT_MRGN, NORTH_LIMIT + PLT_MRGN);

@@ -3,20 +3,32 @@
 namespace geometry {
 
 //PlotObj
-PlotObj::PlotObj(): CG_(0.0,0.0), dir_(0.0,0.0), rad_collision_(0.0), color_("k") {};
+PlotObj::PlotObj(): 
+_center(0.0,0.0), 
+_dir(0.0,0.0), 
+_rad_collision(0.0), 
+_color("k"), 
+_collision_active(false) 
+{};
 
-PlotObj::PlotObj(const double& x_start, const double& y_start, const std::string& color): CG_(x_start,y_start), dir_(0.0,1.0), color_(color) {};
+PlotObj::PlotObj(const double& x_start, const double& y_start, const std::string& color): 
+_center(x_start,y_start), 
+_dir(0.0,1.0), 
+_rad_collision(0.0), 
+_color(color), 
+_collision_active(false) 
+{};
 
 PlotObj::~PlotObj() {};
 
-void PlotObj::calc_rad_collision() {
+void PlotObj::_calc_rad_collision() {
 	//Determine radius for collision detection for given shape
-	rad_collision_ = 0.0;
-	for (auto it = polygon_.begin(); it != polygon_.end(); ++it) {
-		Eigen::Vector2d v = (*it) - CG_;
+	_rad_collision = 0.0;
+	for (auto it = _polygon.begin(); it != _polygon.end(); ++it) {
+		Eigen::Vector2d v = (*it) - _center;
 		double curr_dist = v.norm();
-		if (curr_dist > rad_collision_) {
-			rad_collision_ = curr_dist;
+		if (curr_dist > _rad_collision) {
+			_rad_collision = curr_dist;
 		}
 	}
 	//TODO: Check for collisions at start
@@ -28,38 +40,19 @@ void PlotObj::Plot() const {
 	namespace plt = matplotlibcpp;
 	//Prepare plotting vectors
 	std::vector<double> shape_x , shape_y;
-	for (auto it = polygon_.begin(); it != polygon_.end(); ++it) {
+	for (auto it = _polygon.begin(); it != _polygon.end(); ++it) {
 		shape_x.push_back(it->x());
 		shape_y.push_back(it->y());
 	}
-	plt::plot(shape_x,shape_y,color_);
+	plt::plot(shape_x,shape_y,_color);
 	return;
 }
 
-bool PlotObj::CheckBoundaryCollision(const double& NorthLimit, const double& EastLimit, const double& SouthLimit, const double& WestLimit, LimCollision& type_col) const {
-	double TL, BL, LL, RL;
-	bool outpt = false;
-	type_col = LimCollision::None;
-	TL = CG_.y() + rad_collision_;
-	BL = CG_.y() - rad_collision_;
-	LL = CG_.x() - rad_collision_;
-	RL = CG_.x() + rad_collision_;
-
-	if (TL >= NorthLimit) {
-		outpt = true;
-		type_col = LimCollision::NorthCollision;
-	} else if (BL <= SouthLimit) {
-		outpt = true;
-		type_col = LimCollision::SouthCollision;
-	} else if (LL <= WestLimit) {
-		outpt = true;
-		type_col = LimCollision::WestCollision;
-	} else if (RL >= EastLimit) {
-		outpt = true;
-		type_col = LimCollision::EastCollision;
-	}
-
-	return (outpt);
+bool PlotObj::CheckCollision(const PlotObj& obj) const {
+	double dist = (obj.center() - _center).norm();
+	double rad_check = (obj.rad_collision() + _rad_collision);
+	//printw("distance: %f, radius #1: %f, radius #2: %f\n",dist,obj.rad_collision(),_rad_collision);
+	return ( _collision_active && obj.collision_active() && (dist <= rad_check) );
 }
 //PlotObj
 
