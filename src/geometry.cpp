@@ -39,12 +39,15 @@ void PlotObj::Plot() const {
 	//Plot shape boundary object
 	namespace plt = matplotlibcpp;
 	//Prepare plotting vectors
-	std::vector<double> shape_x , shape_y;
+	std::vector<double> shape_x , shape_y, x_center, y_center;
 	for (auto it = _polygon.begin(); it != _polygon.end(); ++it) {
 		shape_x.push_back(it->x());
 		shape_y.push_back(it->y());
 	}
 	plt::plot(shape_x,shape_y,_color);
+	x_center.push_back(_center.x());
+	y_center.push_back(_center.y());
+	plt::plot(x_center,y_center,"x");
 	return;
 }
 

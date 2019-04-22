@@ -3,10 +3,11 @@
 namespace zerkola {
 
 	//Missile
-	Missile::Missile(): _long_move_speed(MISSLE_SPEED) {};
+	Missile::Missile(): _ID(0), _long_move_speed(MISSLE_SPEED) {};
 
-	Missile::Missile(const double& x, const double& y, const double& spd, const Eigen::Vector2d& tank_dir): 
+	Missile::Missile(const int& id, const double& x, const double& y, const double& spd, const Eigen::Vector2d& tank_dir): 
 	geometry::PlotObj(x,y), 
+	_ID(id),
 	_long_move_speed(MISSLE_SPEED),
 	_travel_dist(0.0)
 	{
@@ -35,6 +36,7 @@ namespace zerkola {
 		for (auto it = _polygon.begin(); it != _polygon.end(); ++it) {
 			(*it) += mvmnt_vec;
 		}
+		_travel_dist += dist;
 		return;
 	}
 
@@ -107,6 +109,9 @@ namespace zerkola {
 				}
 			}
 		}
+		#ifdef DEBUG_RICOCHET
+			printw("ID: %i, Center Point: (%f,%f), Direction (%f,%f), Intersect Distance: %f, Intersect Point: (%f,%f)\n", _ID, _center.x(), _center.y(), _dir.x(), _dir.y(), intersect_dist, intersect_pt.x(), intersect_pt.y());
+		#endif
 		//printw("==END==\n");
 		//Determine if missile is colliding with boundary
 		//printw("Intersect Distance: %f\n", intersect_dist);
@@ -116,17 +121,29 @@ namespace zerkola {
 		if ((intersect_dist - _long_move_speed) <= _rad_collision) {
 			//translate missile to intersection point
 			_translate(intersect_dist);
+			#ifdef DEBUG_RICOCHET
+				printw("Ricochet\n");
+				printw("Post ric. translate center: (%f,%f)\n", _center.x(), _center.y());
+			#endif
 			//printw("CG point: ( %f , %f )\n", CG_(0), CG_(1));
 			//Determine ricochet direction
 			Eigen::Vector2d ricochet_dir = _dir;
-			if ((intersect_pt(0) == WEST_LIMIT) || (intersect_pt(0) == EAST_LIMIT)) ricochet_dir(0) *= -1;
-			if ((intersect_pt(1) == SOUTH_LIMIT) || (intersect_pt(1) == NORTH_LIMIT)) ricochet_dir(1) *= -1;
+			if ( (intersect_pt(0) <= WEST_LIMIT) && (_dir(0) < 0) ) ricochet_dir(0) *= -1;
+			if ( (intersect_pt(0) >= EAST_LIMIT) && (_dir(0) > 0) ) ricochet_dir(0) *= -1;
+			if ( (intersect_pt(1) <= SOUTH_LIMIT) && (_dir(1) < 0) ) ricochet_dir(1) *= -1;
+			if ( (intersect_pt(1) >= NORTH_LIMIT) && (_dir(1) > 0) ) ricochet_dir(1) *= -1;
 			//Rotate missile to richochet direction
 			_rotate_align(ricochet_dir);
+			#ifdef DEBUG_RICOCHET
+				printw("Post ric. rotate dir: (%f,%f)\n", _dir.x(), _dir.y());
+			#endif
+			return;
 		}
 		//Move
-		_translate(_long_move_speed);		
-		_travel_dist += _long_move_speed;
+		_translate(_long_move_speed);	
+		#ifdef DEBUG_RICOCHET
+			printw("Final pos and dir: (%f,%f) (%f,%f)\n", _center.x(), _center.y(), _dir.x(), _dir.y());
+		#endif	
 		return;
 	}
 	//Missile
@@ -153,6 +170,7 @@ namespace zerkola {
 	
 	void Tank::_rotate(const bool& ccw) {
 		if (_turn_taken) return;
+		_turn_taken = true;
 		Eigen::Rotation2Dd rot = _rot_move_speed;
 		if (!ccw) rot = rot.inverse();
 		_dir = rot*_dir;
@@ -161,12 +179,13 @@ namespace zerkola {
 		for (auto it = _polygon.begin(); it != _polygon.end(); ++it) {
 			Eigen::Vector2d v = (*it) - _center;
 			(*it) = rot*v + _center;
-		}
+		}		
 		return;
 	}
 
 	void Tank::_translate(const bool& frwd) {
 		if (_turn_taken) return;
+		_turn_taken = true;
 		//Confirm that dir_ is normalized
 		_dir.normalize();
 		double spd = _long_move_speed;
@@ -176,14 +195,17 @@ namespace zerkola {
 		for (auto it = _polygon.begin(); it != _polygon.end(); ++it) {
 			(*it) += mvmnt_vec;
 		}
-		//TODO: Check if this would violate boundaries and adjust
+		//TODO: Check if this would violate boundaries and adjust		
 		return;
 	}
 
 	void Tank::_fire(std::list<Missile*>& missiles) {
 		if (_turn_taken) return;
-		Missile* mssl_ptr = new Missile(_center.x(),_center.y(),MISSLE_SPEED,_dir);
-		missiles.push_back(mssl_ptr);
+		_turn_taken = true;
+		int num_missiles = missiles.size();
+		if (num_missiles >= MAX_MISSILE_CNT_PER_PLAYER) return;
+		Missile* mssl_ptr = new Missile(num_missiles,_center.x(),_center.y(),MISSLE_SPEED,_dir);
+		missiles.push_back(mssl_ptr);		
 		return;
 	}
 
@@ -267,7 +289,25 @@ namespace zerkola {
 		return;
 	}
 
+	bool Zerkola::_debug_check_missiles() const {
+		for (auto& missile_list : _missiles_all) {
+			for (auto& missile : (*missile_list)) {
+				Eigen::Vector2d missile_center = missile->center();
+				if ( (missile_center.x() > (EAST_LIMIT + 3)) ||
+				     (missile_center.x() < (WEST_LIMIT - 3)) || 
+					 (missile_center.y() > (NORTH_LIMIT + 3)) || 
+					 (missile_center.y() < (SOUTH_LIMIT - 3)) ) {
+						 printw("Missile #%i is out of bounds: (%f,%f)",missile->ID(),missile_center.x(),missile_center.y());
+						 return (true);
+					 }
+			}
+		}
+		return (false);
+	}
+
 	void Zerkola::Run() {
+		//Determine pause duration
+		double pause_dur = 1/DRAW_FREQ;
 		//Setup ncurses for user input
 		initscr();
 		cbreak(); //disables required [enter] after each keyboard input
@@ -308,8 +348,12 @@ namespace zerkola {
 			//Update limits
 			plt::xlim(WEST_LIMIT - PLT_MRGN, EAST_LIMIT + PLT_MRGN);
 			plt::ylim( SOUTH_LIMIT - PLT_MRGN, NORTH_LIMIT + PLT_MRGN);
+			#ifdef DEBUG_FREEZE
+				//check if any missile is out of boundes
+				if (_debug_check_missiles()) pause_dur = 86400; //1 day worth of debugging time :)
+			#endif
 			//Draw			
-			plt::pause(1/DRAW_FREQ);
+			plt::pause(pause_dur);
 		}
 
 		return;

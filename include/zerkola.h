@@ -10,6 +10,8 @@
 #include <utility>
 
 //#define DEBUG
+#define DEBUG_FREEZE
+#define DEBUG_RICOCHET
 
 namespace plt = matplotlibcpp;
 namespace zerkola {
@@ -24,6 +26,7 @@ namespace zerkola {
 	const int MAX_MISSILES_PER_PLAYER = 10;
 	const std::string PLAYER_A_COLOR = "b"; //Player A is blue
 	const std::string PLAYER_B_COLOR = "r"; //Player B is red
+	const int MAX_MISSILE_CNT_PER_PLAYER = 10;
 	const long double MISSILE_ACTIVE_DIST = 5; //Distance missile must travel before it becomes active
 	const long double MISSILE_MAX_DIST = 999999; //Maximum distance a missile can travel before being deleted TODO
 	//Board Boundaries
@@ -42,6 +45,7 @@ namespace zerkola {
 		//Missile object
 		private:
 		//members
+		const int _ID;
 		const double _LENGTH = 2;
 		const double _WIDTH = 1;
 		double _long_move_speed; //Longitudinal speed that the object can more each frame
@@ -53,10 +57,11 @@ namespace zerkola {
 		public:
 		//constructors
 		Missile();
-		Missile(const double& x, const double& y, const double& spd, const Eigen::Vector2d& tank_dir);
+		Missile(const int& id, const double& x, const double& y, const double& spd, const Eigen::Vector2d& tank_dir);
 		~Missile();
 		//methods
 		void Move(); //Moves missile. If missile would collide with boundary, instead will calculate ricochet.
+		inline int ID() const { return(_ID); };
 	};
 
 	class Tank : public geometry::PlotObj {
@@ -106,6 +111,7 @@ namespace zerkola {
 		std::list<std::list<Missile*>*> _missiles_all; //list of all missiles
 		//methods
 		void _init_plot(); //Initialize plot and format
+		bool _debug_check_missiles() const; //used for debugging to check if a missile has left the boundary
 
 		public:
 		//constructors
