@@ -151,20 +151,38 @@ namespace zerkola {
 	//Tank
 	Tank::Tank() {};
 
-	Tank::Tank(const double& x, const double& y,const std::string& color): geometry::PlotObj(x,y,color), _turn_taken(false), _long_move_speed(TANK_LONG_SPEED), _rot_move_speed(TANK_ROT_SPEED) {
-		_polygon.clear();
-		_polygon.emplace_back(_center.x()-_WIDTH/2.0,_center.y()-_LENGTH/2);
-		_polygon.emplace_back(_center.x()-_WIDTH/2.0,_center.y()+_LENGTH/2);
-		_polygon.emplace_back(_center.x()+_WIDTH/2.0,_center.y()+_LENGTH/2);
-		_polygon.emplace_back(_center.x()+_WIDTH/2.0,_center.y()-_LENGTH/2);
-		_polygon.emplace_back(_center.x()-_WIDTH/2.0,_center.y()-_LENGTH/2);
-		//Assert that start and end points are the same
-		assert((_polygon.front().x() == _polygon.back().x()) && (_polygon.front().y() == _polygon.back().y()));
-		//Calculate radius of collision
-		_calc_rad_collision();
-		//Set to active for collisions
-		_collision_active = true;
-	}
+	Tank::Tank(const double& x, const double& y,const std::string& color): 
+		geometry::PlotObj(x,y,color), 
+		_turret(x,y,color),
+		_turn_taken(false), 
+		_long_move_speed(TANK_LONG_SPEED), 
+		_rot_move_speed(TANK_ROT_SPEED) {
+			//Define primary body polygon. This defines radius of collision
+			_polygon.clear();
+			_polygon.emplace_back(_center.x()-_WIDTH/2.0,_center.y()-_LENGTH/2);
+			_polygon.emplace_back(_center.x()-_WIDTH/2.0,_center.y()+_LENGTH/2);
+			_polygon.emplace_back(_center.x()+_WIDTH/2.0,_center.y()+_LENGTH/2);
+			_polygon.emplace_back(_center.x()+_WIDTH/2.0,_center.y()-_LENGTH/2);
+			_polygon.emplace_back(_center.x()-_WIDTH/2.0,_center.y()-_LENGTH/2);
+			//Assert that start and end points are the same
+			assert((_polygon.front().x() == _polygon.back().x()) && (_polygon.front().y() == _polygon.back().y()));
+			//Calculate radius of collision
+			_calc_rad_collision();
+			//Set to active for collisions
+			_collision_active = true;
+
+			//Define left and right tracks
+
+			//Define turret
+			double turret_width = 0.75, turret_length = 5, front_frac = 0.8;
+			std::vector<Eigen::Vector2d> poly;
+			poly.emplace_back(_center.x()-turret_width/2.0,_center.y()-turret_length*(1-front_frac));
+			poly.emplace_back(_center.x()-turret_width/2.0,_center.y()+turret_length*front_frac);
+			poly.emplace_back(_center.x()+turret_width/2.0,_center.y()+turret_length*front_frac);
+			poly.emplace_back(_center.x()+turret_width/2.0,_center.y()-turret_length*(1-front_frac));
+			poly.emplace_back(_center.x()-turret_width/2.0,_center.y()-turret_length*(1-front_frac));
+			_turret.UpdatePolygon(poly);
+		}
 
 	Tank::~Tank() {};
 	
@@ -173,13 +191,9 @@ namespace zerkola {
 		_turn_taken = true;
 		Eigen::Rotation2Dd rot = _rot_move_speed;
 		if (!ccw) rot = rot.inverse();
-		_dir = rot*_dir;
-		_dir.normalize();
-		//Perform rotation on polygon
-		for (auto it = _polygon.begin(); it != _polygon.end(); ++it) {
-			Eigen::Vector2d v = (*it) - _center;
-			(*it) = rot*v + _center;
-		}		
+		//Move tank parts
+		Rotate(rot,_center);
+		_turret.Rotate(rot,_center);	
 		return;
 	}
 
@@ -187,14 +201,14 @@ namespace zerkola {
 		if (_turn_taken) return;
 		_turn_taken = true;
 		//Confirm that dir_ is normalized
+		//XXX Assumes that all objects are in same direction
 		_dir.normalize();
 		double spd = _long_move_speed;
 		if (!frwd) spd *= -1.0;
 		Eigen::Vector2d mvmnt_vec = _dir* spd;
-		_center += mvmnt_vec;
-		for (auto it = _polygon.begin(); it != _polygon.end(); ++it) {
-			(*it) += mvmnt_vec;
-		}
+		//Move tank parts
+		Translate(mvmnt_vec);
+		_turret.Translate(mvmnt_vec);
 		//TODO: Check if this would violate boundaries and adjust		
 		return;
 	}
@@ -241,6 +255,16 @@ namespace zerkola {
 				break;
 		}
 		flushinp(); //Flush input buffer
+		return;
+	}
+
+	void Tank::PlotTank() const {
+		int zord = 0;
+		//Plot tracks
+		//Plot body
+		Plot(zord);
+		//Plot turret
+		_turret.Plot(++zord);
 		return;
 	}
 	//Tank
@@ -330,8 +354,8 @@ namespace zerkola {
 			_tank_player_B->ResetTurn();
 			_tank_player_B->Turn(_missiles_player_B);
 			//Plot tanks
-			_tank_player_A->Plot();
-			_tank_player_B->Plot();
+			_tank_player_A->PlotTank();
+			_tank_player_B->PlotTank();
 			for (auto& missile_list : _missiles_all) {
 				for (auto& missile : (*missile_list)) {
 					//printw("Missile #%i\n",mssl_cnt);
@@ -341,7 +365,8 @@ namespace zerkola {
 					if (_tank_player_A->CheckCollision(*missile)) printw("HIT!\n");
 					//TODO: Arbitrate between missile plot or explosion plot			
 					//Plot
-					missile->Plot();
+					int zord = 0;
+					missile->Plot(zord);
 				}
 			}
 

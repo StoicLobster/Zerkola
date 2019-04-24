@@ -70,6 +70,7 @@ namespace zerkola {
 		//members
 		const double _LENGTH = 4;
 		const double _WIDTH = 2;
+		geometry::PlotObj _left_track, _right_track, _turret; //various additional objects that define the tank
 		bool _turn_taken; //indicate that turn was taken
 		double _long_move_speed; //Longitudinal speed that the object can more each frame
 		Eigen::Rotation2Dd _rot_move_speed; //Rotational speed that the object can more each frame
@@ -86,6 +87,7 @@ namespace zerkola {
 		//methods
 		virtual void Turn(std::list<Missile*>& missiles); //Executes turn of the tank. This method should be overriden for AI classes. Default turn is for player. If a missile was fired, adds it to the list.
 		inline void ResetTurn() { _turn_taken = false; }; //Simply resets turn taken tracker
+		void PlotTank() const; //Special plot command for tank which consists of multiple objects
 	};
 
 	class SkyNet : public Tank {

@@ -9,6 +9,7 @@
 #include <Eigen/Dense>
 #include <string>
 #include <ncurses.h>
+#include <map>
 
 namespace geometry {
 
@@ -32,15 +33,18 @@ namespace geometry {
 		public:
 		//constructors
 		PlotObj();
-		PlotObj(const double& x_start, const double& y_start,const std::string& color="k");
+		PlotObj(const double& x_start, const double& y_start, const std::string& color="k");
 		~PlotObj();
+		void UpdatePolygon(const std::vector<Eigen::Vector2d>& poly);
 
 		//methods
-		void Plot() const; //Plots the current object boundary
+		void Plot(int& zord) const; //Plots the current object boundary with given starting zorder
 		inline Eigen::Vector2d center() const { return(_center); };
 		inline double rad_collision() const { return(_rad_collision); };
 		inline double collision_active() const { return(_collision_active); }; 
 		bool CheckCollision(const PlotObj& obj) const; //Checks if this object collides with given object
+		void Translate(const Eigen::Vector2d& mvmnt_vec); //Translates object / polygon by given movement vector
+		void Rotate(const Eigen::Rotation2Dd& rot, const Eigen::Vector2d& cntr); //Rotate object / polygon about center by rotation
 	};
 
 	bool VectorIntersection(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am, const Eigen::Vector2d& B0, const Eigen::Vector2d& Bm, double& lambda, Eigen::Vector2d& I);

@@ -21,6 +21,11 @@ _collision_active(false)
 
 PlotObj::~PlotObj() {};
 
+void PlotObj::UpdatePolygon(const std::vector<Eigen::Vector2d>& poly) {
+	_polygon = poly;
+	return;
+};
+
 void PlotObj::_calc_rad_collision() {
 	//Determine radius for collision detection for given shape
 	_rad_collision = 0.0;
@@ -35,7 +40,7 @@ void PlotObj::_calc_rad_collision() {
 	return;
 }
 
-void PlotObj::Plot() const {
+void PlotObj::Plot(int& zord) const {
 	//Plot shape boundary object
 	namespace plt = matplotlibcpp;
 	//Prepare plotting vectors
@@ -43,11 +48,11 @@ void PlotObj::Plot() const {
 	for (auto it = _polygon.begin(); it != _polygon.end(); ++it) {
 		shape_x.push_back(it->x());
 		shape_y.push_back(it->y());
-	}
-	plt::plot(shape_x,shape_y,_color);
-	x_center.push_back(_center.x());
-	y_center.push_back(_center.y());
-	plt::plot(x_center,y_center,"x");
+	}	
+	std::map<std::string, std::string> args = { {"color",_color}, {"zorder",std::to_string(zord)} };
+	plt::fill(shape_x,shape_y,args);
+	args = { {"color","k"}, {"linewidth","1.0"}, {"zorder",std::to_string(++zord)} };
+	plt::plot(shape_x,shape_y,args);
 	return;
 }
 
@@ -56,6 +61,25 @@ bool PlotObj::CheckCollision(const PlotObj& obj) const {
 	double rad_check = (obj.rad_collision() + _rad_collision);
 	//printw("distance: %f, radius #1: %f, radius #2: %f\n",dist,obj.rad_collision(),_rad_collision);
 	return ( _collision_active && obj.collision_active() && (dist <= rad_check) );
+}
+
+void PlotObj::Translate(const Eigen::Vector2d& mvmnt_vec) {
+	_center += mvmnt_vec;
+	for (auto it = _polygon.begin(); it != _polygon.end(); ++it) {
+		(*it) += mvmnt_vec;
+	}
+	return;
+}
+
+void PlotObj::Rotate(const Eigen::Rotation2Dd& rot, const Eigen::Vector2d& cntr) {
+	_dir = rot*_dir;
+	_dir.normalize();
+	//Perform rotation on polygon
+	for (auto it = _polygon.begin(); it != _polygon.end(); ++it) {
+		Eigen::Vector2d v = (*it) - cntr;
+		(*it) = rot*v + cntr;
+	}	
+	return;
 }
 //PlotObj
 
