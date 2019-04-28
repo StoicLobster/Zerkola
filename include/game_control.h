@@ -1,8 +1,22 @@
 #ifndef ZERKOLA_INCLUDE_GAME_CONTROL_H_
 #define ZERKOLA_INCLUDE_GAME_CONTROL_H_
+/* Game Control
+ * Defines constants used throughout the game.
+ */
 //Includes
 #include <string>
+
 namespace gc {
+// Game definition
+const char* const GAME_TITLE = "Zerkola";
+const int FPS = 60;
+const int MAX_FRAME_TIME_MS = 1000 / FPS; //Max time a frame is allowed to last [ms]
+// Window size
+const int WINDOW_WIDTH = 640;
+const int WINDOW_HEIGHT = 480;
+// Sprites
+const double SPRITE_SCALE = 1.0;
+// Old
 const double DRAW_FREQ = 120; //draw frequency [Hz]
 const double PLAYER_A_START_X = 75.0; //default starting x position for player
 const double PLAYER_B_START_X = 25.0; //default starting x position for AI
@@ -29,4 +43,5 @@ typedef enum AI_List {
 	AI_2_SKYNET
 } AI_List;
 }
+
 #endif

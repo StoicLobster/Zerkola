@@ -25,6 +25,10 @@
                 "python2.7",
                 "-l",
                 "ncurses",
+                "-l",
+                "SDL2",
+                "-l",
+                "SDL2_image",
                 "-o",
                 "${workspaceFolder}/bin/zerkola"
                 
