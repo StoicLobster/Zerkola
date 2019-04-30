@@ -19,9 +19,17 @@ AnimatedSprite::AnimatedSprite(graphics::Graphics& graphics, const std::string& 
     _visible(true)   
     {}
 
-void AnimatedSprite::addAnimation(int frames, int x, int y, std::string name, int width, int height, Eigen::Vector2d offset) {
+void AnimatedSprite::addAnimation(int frames, int x, int y, std::string name, int width, int height, Eigen::Vector2d offset, bool reverse) {
     std::vector<SDL_Rect> rectangles;
-    for (int i = 0; i < frames; ++i) {
+    int start, end;
+    if (reverse) {
+        start = (frames - 1);
+        end = 0;
+    } else {
+        start = 0;
+        end = (frames - 1);
+    }
+    for (int i = start; i <= end; ++i) {
         SDL_Rect newRect = { x + i * width, y, width, height };
         rectangles.push_back(newRect);
     }
@@ -89,11 +97,11 @@ void AnimatedSprite::draw(graphics::Graphics& graphics, int x, int y) {
     return;
 }
 
-void AnimatedSprite::animationDone(std::string currentAnimation) {}
+//void AnimatedSprite::animationDone(std::string currentAnimation) {}
 
-void AnimatedSprite::setupAnimations() {    
-    addAnimation(3, 0, 0, "RollForward", 29, 31, Eigen::Vector2d(0,0));
-    return;
-}
+// void AnimatedSprite::setupAnimations() {    
+//     
+//     return;
+// }
 
 }

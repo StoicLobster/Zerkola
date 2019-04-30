@@ -22,9 +22,7 @@ void Zerkola::loop() {
     input::Input input;
     SDL_Event event; //Events that occur will be stored here by SDL
 
-    _player_A = animated_sprite::AnimatedSprite(graphics, "content/sprites/red_tank_2.png", 0, 0, 29, 31, 100, 100, 100);
-    _player_A.setupAnimations();
-    _player_A.playAnimation("RollForward");
+    _player_red = player::Player(graphics, gc::PLAYER_START_POS_X, gc::PLAYER_START_POS_Y);
 
     int last_update_time_ms = SDL_GetTicks(); //[ms] time since SDL_Init was called
     //Start game loop
@@ -65,14 +63,14 @@ void Zerkola::loop() {
 void Zerkola::draw(graphics::Graphics &graphics) {
     graphics.clear();
 
-    _player_A.draw(graphics, 100, 100);
+    _player_red.draw(graphics);
 
     graphics.flip();
     return;    
 }
 
 void Zerkola::update(double elaspedTime) {
-    _player_A.update(elaspedTime);
+    _player_red.update(elaspedTime);
     return;
 }
 

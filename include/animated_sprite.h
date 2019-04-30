@@ -21,14 +21,12 @@ public:
 
     void draw(graphics::Graphics& graphics, int x, int y); //draw sprite on screen
 
-    virtual void setupAnimations(); //required function that sets up all animations for a sprite
-
 protected:
     double _timeToUpdate; //amount of time between frames
     bool _currentAnimationOnce;
     std::string _currentAnimation; //name of current animation
 
-    void addAnimation(int frames, int x, int y, std::string name, int width, int height, Eigen::Vector2d offset); //adds animation to map of animations
+    void addAnimation(int frames, int x, int y, std::string name, int width, int height, Eigen::Vector2d offset, bool reverse); //adds animation to map of animations
 
     void resetAnimations(); //clears out map of animations
 
@@ -36,7 +34,9 @@ protected:
 
     void setVisible(bool visible); //changes visibility of animated sprite
 
-    virtual void animationDone(std::string currentAnimation); //Logic that happens when animation ends
+    virtual void animationDone(std::string currentAnimation) = 0; //Logic that happens when animation ends. Pure virtual.
+
+    virtual void setupAnimations() = 0; //required function that sets up all animations for a sprite. Pure virtual.
 
 private:
     std::map< std::string, std::vector<SDL_Rect> > _animations;

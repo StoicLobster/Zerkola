@@ -18,7 +18,7 @@ private:
     std::map<SDL_Scancode, bool> _heldKeys; //keys that have been held
     std::map<SDL_Scancode, bool> _pressedKeys; //keys that have been pressed
     std::map<SDL_Scancode, bool> _releasedKeys; //keys that have been released
-    //TODO: Add mouse input
+    //TODO: Add mouse input?
 };
 }
 

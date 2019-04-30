@@ -1,7 +1,7 @@
 #ifndef ZERKOLA_INCLUDE_ZERKOLA_H_
 #define ZERKOLA_INCLUDE_ZERKOLA_H_
 
-#include <animated_sprite.h>
+#include <player.h>
 #include <graphics.h>
 
 namespace zerkola {
@@ -15,7 +15,7 @@ private:
     void draw(graphics::Graphics &graphics); //draws grpahics
     void update(double elaspedTime); //updates graphics
 
-    animated_sprite::AnimatedSprite _player_A;
+    player::Player _player_red; //TODO: Should be tank class and should be one for _player_blue
 };
 
 } //zerkola
