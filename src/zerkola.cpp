@@ -22,7 +22,7 @@ void Zerkola::loop() {
     input::Input input;
     SDL_Event event; //Events that occur will be stored here by SDL
 
-    _player_red = player::Player(graphics, gc::PLAYER_START_POS_X, gc::PLAYER_START_POS_Y);
+    _player_red = player::Player(graphics, gc::RED_TANK_SPRITE_START_X, gc::RED_TANK_SPRITE_START_Y);
 
     int last_update_time_ms = SDL_GetTicks(); //[ms] time since SDL_Init was called
     //Start game loop
@@ -30,7 +30,7 @@ void Zerkola::loop() {
         //Reset keys
         input.beginNewFrame();
 
-        //Check if events have occurred
+        //Check if events have occurred and store them
         if (SDL_PollEvent(&event)) {
             if (event.type == SDL_KEYDOWN) {
                 //key was pressed
