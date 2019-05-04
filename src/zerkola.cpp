@@ -17,60 +17,62 @@ Zerkola::Zerkola() {
 
 Zerkola::~Zerkola() {}
 
-void Zerkola::loop() {
-    graphics::Graphics graphics;
-    input::Input input;
-    SDL_Event event; //Events that occur will be stored here by SDL
-
-    _player_red = player::Player(graphics, gc::RED_TANK_SPRITE_START_X, gc::RED_TANK_SPRITE_START_Y);
+void Zerkola::loop() {         
+    //Instantiate players
+    _tank_blue = tank::Tank(_graphics, gc::PlayerColor::BLUE); //Always human player
+    //_tank_red = tank::Tank(_graphics, gc::PlayerColor::RED); TODO: Make AI
 
     int last_update_time_ms = SDL_GetTicks(); //[ms] time since SDL_Init was called
     //Start game loop
     while (true) {
         //Reset keys
-        input.beginNewFrame();
+        _input.beginNewFrame();
 
         //Check if events have occurred and store them
-        if (SDL_PollEvent(&event)) {
-            if (event.type == SDL_KEYDOWN) {
+        if (SDL_PollEvent(&_event)) {
+            if (_event.type == SDL_KEYDOWN) {
                 //key was pressed
-                if (event.key.repeat == 0) {
+                if (_event.key.repeat == 0) {
                     //key is not being held down
-                    input.keyDownEvent(event);
+                    _input.keyDownEvent(_event);
                 }
-            } else if (event.type == SDL_KEYUP) {
+            } else if (_event.type == SDL_KEYUP) {
                 //key was released
-                input.keyUpEvent(event);
-            } else if (event.type == SDL_QUIT) {
+                _input.keyUpEvent(_event);
+            } else if (_event.type == SDL_QUIT) {
                 //Quit game if its closed
                 return;
             }
         }
 
         //Check if esc was pressed
-        if (input.wasKeyPressed(SDL_SCANCODE_ESCAPE)) return;
+        if (_input.wasKeyPressed(SDL_SCANCODE_ESCAPE)) return;
 
+        //Calculate elapsed time
         const int CURRENT_TIME_MS = SDL_GetTicks();
         int elapsed_frame_time_ms = CURRENT_TIME_MS - last_update_time_ms;
-        update(std::min(elapsed_frame_time_ms, gc::MAX_FRAME_TIME_MS));
+        _elapsedTime = std::min(elapsed_frame_time_ms, gc::MAX_FRAME_TIME_MS);
         last_update_time_ms = CURRENT_TIME_MS;
 
+        //Update game
+        update();        
+
         //Draw
-        draw(graphics);
+        draw();
     }
 }
 
-void Zerkola::draw(graphics::Graphics &graphics) {
-    graphics.clear();
+void Zerkola::draw() {
+    _graphics.clear();
 
-    _player_red.draw(graphics);
+    _tank_blue.draw(_graphics);
 
-    graphics.flip();
+    _graphics.flip();
     return;    
 }
 
-void Zerkola::update(double elaspedTime) {
-    _player_red.update(elaspedTime);
+void Zerkola::update() {
+    _tank_blue.turn(_elapsedTime);
     return;
 }
 

@@ -51,8 +51,11 @@ const double TANK_RAD_COL = 2; //Radius of collision for tank
 const double TANK_ROLLING_RESIST_FRC = 100; //Rolling resistance of tracks
 const double TANK_ROLLING_RESIST_TRQ = 50; //Rolling resistance of tracks
 // Environment Dyncamis
-const double SURF_STATIC_FRICTION = 0.8;
-const double SURF_KINETIC_FRICTION = 0.4;
+const Eigen::Vector3d X(1,0,0); //Global X unit vector
+const Eigen::Vector3d Y(0,1,0); //Global Y unit vector
+const Eigen::Vector3d Z(0,0,1); //Global Z unit vector
+const double SURF_STATIC_MU = 0.8;
+const double SURF_KINETIC_MU = 0.4;
 const double g = 9.81;
 // Missile Dynamics
 const double MISSLE_SPEED = 2; //default missile speed

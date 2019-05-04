@@ -97,11 +97,4 @@ void AnimatedSprite::draw(graphics::Graphics& graphics, int x, int y) {
     return;
 }
 
-//void AnimatedSprite::animationDone(std::string currentAnimation) {}
-
-// void AnimatedSprite::setupAnimations() {    
-//     
-//     return;
-// }
-
 }

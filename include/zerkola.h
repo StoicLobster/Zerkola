@@ -1,21 +1,28 @@
 #ifndef ZERKOLA_INCLUDE_ZERKOLA_H_
 #define ZERKOLA_INCLUDE_ZERKOLA_H_
 
-#include <player.h>
+#include <tank.h>
 #include <graphics.h>
 
 namespace zerkola {
 
 class Zerkola {
-public:
+private:
+    input::Input _input;
+    SDL_Event _event; //Events that occur will be stored here by SDL
+    graphics::Graphics _graphics;
+    tank::Tank _tank_red; //red tank
+    tank::Tank _tank_blue; //blue tank
+    double _elapsedTime; //Elapsed time this frame
+
+    void loop(); //core loop. Runs every frame.
+    void draw(); //draws grpahics
+    void update(); //updates graphics    
+
+    public:
+
     Zerkola();
     ~Zerkola();
-private:
-    void loop(); //core loop. Runs every frame.
-    void draw(graphics::Graphics &graphics); //draws grpahics
-    void update(double elaspedTime); //updates graphics
-
-    player::Player _player_red; //TODO: Should be tank class and should be one for _player_blue
 };
 
 } //zerkola

@@ -25,7 +25,7 @@ void Input::keyDownEvent(const SDL_Event& event) {
 }
 
 bool Input::wasKeyPressed(const SDL_Scancode& key) {
-    return(_pressedKeys[key]);
+    return(_pressedKeys[key]); //Important note, when map is queried with [] for an element it does not contain, it adds a default element with that key (in this case false)
 }
 
 bool Input::wasKeyReleased(const SDL_Scancode& key) {

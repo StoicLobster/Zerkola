@@ -14,14 +14,11 @@ public:
     Player(graphics::Graphics& graphics, double x, double y);
     void draw(graphics::Graphics& graphics);
     void update(double elapsedTime);
-
-    void translate(); //translate tank direction
-
+    
     virtual void animationDone(std::string currentAnimation);
     virtual void setupAnimations();
 
 private:
-    gc::Direction _direction;
     double _dx, _dy; //Change in position during this frame
 
 };
