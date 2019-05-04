@@ -25,10 +25,17 @@ public:
 
     SDL_Surface* loadImage(const std::string& filePath); //load image into _spriteSheets map if it doesnt already exist
 
-    void blitSurface(SDL_Texture* source, SDL_Rect* sourceRectangle, SDL_Rect* destinationRectangle); //draws SDL_Texture to screen
-
+    void blitSurface(SDL_Texture* source, SDL_Rect* sourceRectangle, SDL_Rect* destinationRectangle); //draws SDL_Texture to screen. Not used
+    /* Render Copy
+     * Uses SDL_RenderCopyEx to render and rotate the given texture
+     */    
+    void renderCopy(
+        SDL_Texture* texture, 
+        const SDL_Rect* sourceRectangle, 
+        const SDL_Rect* destinationRectangle, 
+        const double angle, 
+        const SDL_Point* center);
     void flip(); //renders everything to screen
-
     void clear(); //clears the screen
 
     SDL_Renderer* getRenderer() const; //Return _renderer

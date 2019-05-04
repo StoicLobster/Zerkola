@@ -8,42 +8,49 @@ Tank::Tank() {};
 
 Tank::~Tank() {};
 
-Tank::Tank(graphics::Graphics& graphics, gc::PlayerColor player_color): 
+Tank::Tank(graphics::Graphics& graphics, gc::PlayerColor player_color, input::Input* input_ptr): 
     animated_sprite::AnimatedSprite(
         graphics, 
-        gc::TANK_SPRITE_ANIMATION_LOCATION, 
-        player_color == gc::PlayerColor::RED ? gc::RED_TANK_SPRITE_START_X : gc::BLUE_TANK_SPRITE_START_X, 
-        player_color == gc::PlayerColor::RED ? gc::RED_TANK_SPRITE_START_Y : gc::BLUE_TANK_SPRITE_START_Y, 
-        gc::TANK_SPRITE_WIDTH, 
-        gc::TANK_SPRITE_HEIGHT,
+        gc::TANK_SPRITE_ANIMATION_FILE_PATH, 
+        player_color == gc::PlayerColor::RED ? gc::RED_TANK_BODY_SPRITE_START_X : gc::BLUE_TANK_BODY_SPRITE_START_X, 
+        player_color == gc::PlayerColor::RED ? gc::RED_TANK_BODY_SPRITE_START_Y : gc::BLUE_TANK_BODY_SPRITE_START_Y, 
+        gc::TANK_BODY_SPRITE_WIDTH, 
+        gc::TANK_BODY_SPRITE_HEIGHT,
         player_color == gc::PlayerColor::RED ? gc::RED_PLAYER_START_POS_X : gc::BLUE_PLAYER_START_POS_X, 
         player_color == gc::PlayerColor::RED ? gc::RED_PLAYER_START_POS_Y : gc::BLUE_PLAYER_START_POS_Y, 
-        gc::TANK_SPRITE_UPDATE_RATE_MS),
+        gc::TANK_BODY_SPRITE_UPDATE_RATE_MS),
         _color(player_color),
-        _input_ptr(nullptr),
-        _l_body(0,1,0),
-        _t_body(-1,0,0),
-        _l_turret(0,1,0),
-        _t_turret(-1,0,0),
-        _body_lin_v(0,0,0),
-        _body_lin_a(0,0,0),
-        _body_ang_v(0,0,0),
-        _body_ang_a(0,0,0),   
-        _body_lin_v_prev(0,0,0),
-        _body_lin_a_prev(0,0,0),
-        _body_ang_v_prev(0,0,0),
-        _body_ang_a_prev(0,0,0),   
-        _rotate_body_torque_cmnd(0),
-        _translate_body_frc_cmnd(0),
-        _rotate_turret_spd_cmnd(0),
-        _tractive_accel_limit_mag(0),
+        _input_ptr(input_ptr),
+        _turret(graphics, 
+        gc::TANK_SPRITE_ANIMATION_FILE_PATH, 
+        player_color == gc::PlayerColor::RED ? gc::RED_TANK_TURRET_SPRITE_START_X : gc::BLUE_TANK_TURRET_SPRITE_START_X, 
+        player_color == gc::PlayerColor::RED ? gc::RED_TANK_TURRET_SPRITE_START_Y : gc::BLUE_TANK_TURRET_SPRITE_START_Y, 
+        gc::TANK_TURRET_SPRITE_WIDTH, 
+        gc::TANK_TURRET_SPRITE_HEIGHT),
+        _l_body(-1*gc::Y_3D.cast<double>()),
+        _t_body(-1*gc::X_3D.cast<double>()),
+        _l_turret(-1*gc::Y_3D.cast<double>()),
+        _t_turret(-1*gc::X_3D.cast<double>()),
+        _k(-1*gc::Z_3D.cast<double>()),
+        _body_lin_v(0.0,0.0,0.0),
+        _body_lin_a(0.0,0.0,0.0),
+        _body_ang_v(0.0,0.0,0.0),
+        _body_ang_a(0.0,0.0,0.0),   
+        _body_lin_v_prev(0.0,0.0,0.0),
+        _body_lin_a_prev(0.0,0.0,0.0),
+        _body_ang_v_prev(0.0,0.0,0.0),
+        _body_ang_a_prev(0.0,0.0,0.0),   
+        _rotate_body_torque_cmnd(0.0),
+        _translate_body_frc_cmnd(0.0),
+        _rotate_turret_spd_cmnd(0.0),
+        _tractive_accel_limit_mag(0.0),
         _slip(false),
         _num_missiles(gc::MAX_MISSILES_PER_PLAYER),
         _fire_this_turn(false),
         _move_this_turn(false)
 {
     //Set starting position in game
-    int start_x, start_y;
+    double start_x, start_y;
     if (_color == gc::PlayerColor::RED) {
         start_x = gc::RED_PLAYER_START_POS_X;
         start_y = gc::RED_PLAYER_START_POS_Y;
@@ -51,47 +58,74 @@ Tank::Tank(graphics::Graphics& graphics, gc::PlayerColor player_color):
         start_x = gc::BLUE_PLAYER_START_POS_X;
         start_y = gc::BLUE_PLAYER_START_POS_Y;
     }
-    _body_center.x = start_x;
-    _body_center.y = start_y;
-    _body_center.z = 0;
-    _turrent_center.x = start_x;
-    _turrent_center.y = start_y;
-    _turrent_center.z = 0;
+    _body_center.x() = start_x;
+    _body_center.y() = start_y;
+    _body_center.z() = 0.0;
+    _turret_center.x() = static_cast<double>(start_x + gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_X);
+    _turret_center.y() = static_cast<double>(start_y + gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_Y);
+    _turret_center.z() = 0.0;
 
     //Setup animations
-    setupAnimations();
+    _setupAnimations();
 };
 
-void Tank::animationDone(std::string currentAnimation) {};
+void Tank::_animationDone(std::string currentAnimation) {}; //TODO?
 
-void Tank::setupAnimations() {
+void Tank::_setupAnimations() {
     int sprite_start_x, sprite_start_y;
     if (_color == gc::PlayerColor::RED) {
-        sprite_start_x = gc::RED_TANK_SPRITE_START_X;
-        sprite_start_y = gc::RED_TANK_SPRITE_START_Y;
+        sprite_start_x = gc::RED_TANK_BODY_SPRITE_START_X;
+        sprite_start_y = gc::RED_TANK_BODY_SPRITE_START_Y;
     } else {
-        sprite_start_x = gc::BLUE_TANK_SPRITE_START_X;
-        sprite_start_y = gc::BLUE_TANK_SPRITE_START_Y;
+        sprite_start_x = gc::BLUE_TANK_BODY_SPRITE_START_X;
+        sprite_start_y = gc::BLUE_TANK_BODY_SPRITE_START_Y;
     }
-    addAnimation(gc::NUMBER_TANK_SPRITE_ROLL_ANIMATIONS, sprite_start_x, sprite_start_y, "RollForward", gc::TANK_SPRITE_WIDTH, gc::TANK_SPRITE_HEIGHT, Eigen::Vector2d(0,0), false);
-    addAnimation(gc::NUMBER_TANK_SPRITE_ROLL_ANIMATIONS, sprite_start_x, sprite_start_y, "RollBackward", gc::TANK_SPRITE_WIDTH, gc::TANK_SPRITE_HEIGHT, Eigen::Vector2d(0,0), true);
+    _addAnimation(gc::TANK_BODY_NUMBER_SPRITE_ROLL_ANIMATIONS, sprite_start_x, sprite_start_y, "RollForward", gc::TANK_BODY_SPRITE_WIDTH, gc::TANK_BODY_SPRITE_HEIGHT, false);
+    _addAnimation(gc::TANK_BODY_NUMBER_SPRITE_ROLL_ANIMATIONS, sprite_start_x, sprite_start_y, "RollBackward", gc::TANK_BODY_SPRITE_WIDTH, gc::TANK_BODY_SPRITE_HEIGHT, true);
     return;
 }
 
-void Tank::turn(const double elapsed_time) {
-    gc::LinearDirections translate_body_cmnd = gc::LinearDirections::NONE;
-    gc::AngularDirections rotate_body_cmnd = gc::AngularDirections::NONE;
-    gc::AngularDirections rotate_turret_cmnd = gc::AngularDirections::NONE;
+void Tank::_turn(const double dt) {
+    gc::LinearDirections translate_body_cmnd = gc::LinearDirections::LINEAR_NONE;
+    gc::AngularDirections rotate_body_cmnd = gc::AngularDirections::ANGULAR_NONE;
+    gc::AngularDirections rotate_turret_cmnd = gc::AngularDirections::ANGULAR_NONE;
     //Parse input and execute move / fire
     if (_input_ptr->wasKeyPressed(SDL_SCANCODE_SPACE) || _input_ptr->isKeyHeld(SDL_SCANCODE_SPACE)) {
-        //Fire missile
-        _fire(); //TODO Pass in missile list from Zerkola
+        //Fire a Missile
+        //_fire(); //TODO Pass in missile list from Zerkola
     }
-    //TODO finish possible input commands
-    //arrow keys for movement
-    //a/d for rotate turret
+    if (_input_ptr->wasKeyPressed(SDL_SCANCODE_UP) || _input_ptr->isKeyHeld(SDL_SCANCODE_UP)) {
+        translate_body_cmnd = gc::LinearDirections::FORWARD;
+    } else if (_input_ptr->wasKeyPressed(SDL_SCANCODE_DOWN) || _input_ptr->isKeyHeld(SDL_SCANCODE_DOWN)) {
+        translate_body_cmnd = gc::LinearDirections::REVERSE;
+    }
+    if (_input_ptr->wasKeyPressed(SDL_SCANCODE_RIGHT) || _input_ptr->isKeyHeld(SDL_SCANCODE_RIGHT)) {
+        rotate_body_cmnd = gc::AngularDirections::CW;
+    } else if (_input_ptr->wasKeyPressed(SDL_SCANCODE_LEFT) || _input_ptr->isKeyHeld(SDL_SCANCODE_LEFT)) {
+        rotate_body_cmnd = gc::AngularDirections::CCW;
+    }
+    if (_input_ptr->wasKeyPressed(SDL_SCANCODE_D) || _input_ptr->isKeyHeld(SDL_SCANCODE_D)) {
+        rotate_turret_cmnd = gc::AngularDirections::CW;
+    } else if (_input_ptr->wasKeyPressed(SDL_SCANCODE_A) || _input_ptr->isKeyHeld(SDL_SCANCODE_A)) {
+        rotate_turret_cmnd = gc::AngularDirections::CCW;
+    }
+    _move(dt, translate_body_cmnd, rotate_body_cmnd, rotate_turret_cmnd);
 
     
+    return;
+}
+
+void Tank::_setPose() {
+    //Tank Body
+    Eigen::Vector2i c_body(_body_center.cast<int>().x(),_body_center.cast<int>().y());
+    this->setCenter(c_body);
+    Eigen::Vector2i d_body(_l_body.cast<int>().x(),_l_body.cast<int>().y());
+    this->setDirection(d_body);
+    //Tank Turret
+    Eigen::Vector2i c_turret(_turret_center.cast<int>().x(),_turret_center.cast<int>().y());
+    _turret.setCenter(c_turret);
+    Eigen::Vector2i d_turret(_l_turret.cast<int>().x(),_l_turret.cast<int>().y());
+    _turret.setDirection(d_turret);
     return;
 }
 
@@ -138,13 +172,13 @@ void Tank::_move(const double dt,
 
         /*** Newton's Second Law - Moment Balance ***/
         double tau = _rotate_body_torque_cmnd;
-        _body_ang_a = tau/gc::TANK_MOMENT_OF_INERTIA_Z * gc::Z;
+        _body_ang_a = tau/gc::TANK_MOMENT_OF_INERTIA_Z * gc::Z_3D.cast<double>();
         //Integrate angular acceleration
         _integrate(dt, _body_ang_v, _body_ang_a_prev, _body_ang_a);
         //Integrate angular velocity
         double theta_delta = 0; //TODO: Cleaner way to handle angular position?
         _integrate(dt, theta_delta, _body_ang_v_prev.norm(), _body_ang_v.norm());
-        Eigen::Rotation2Dd rot(theta_delta);
+        Eigen::AngleAxis<double> rot(theta_delta, _k);
         _l_body = rot*_l_body;
         _t_body = rot*_t_body;
         _l_turret = rot*_l_turret;
@@ -163,7 +197,7 @@ void Tank::_move(const double dt,
         _integrate(dt, _body_lin_v, _body_lin_a_prev, _body_lin_a);
         //Integrate linear velocity
         _integrate(dt, _body_center, _body_lin_v_prev, _body_lin_v);
-        _integrate(dt, _turrent_center, _body_lin_v_prev, _body_lin_v);
+        _integrate(dt, _turret_center, _body_lin_v_prev, _body_lin_v);
         
     } else if (!_slip) {
         _tractive_accel_limit_mag = gc::g*gc::SURF_KINETIC_MU;
@@ -177,14 +211,14 @@ void Tank::_move(const double dt,
         _integrate(dt, _body_lin_v, _body_lin_a_prev, _body_lin_a);
         //Integrate linear velocity
         _integrate(dt, _body_center, _body_lin_v_prev, _body_lin_v);
-        _integrate(dt, _turrent_center, _body_lin_v_prev, _body_lin_v);
+        _integrate(dt, _turret_center, _body_lin_v_prev, _body_lin_v);
     }
 
     /*** Rotate Tank Turret ***/
     if (rotate_turret_cmnd == gc::AngularDirections::CCW) _rotate_turret_spd_cmnd = gc::TANK_TURRET_ROT_SPD;
     else if (rotate_turret_cmnd == gc::AngularDirections::CW) _rotate_turret_spd_cmnd = -1 * gc::TANK_TURRET_ROT_SPD;
     double theta_delta = _rotate_turret_spd_cmnd*dt;
-    Eigen::Rotation2Dd rot(theta_delta);
+    Eigen::AngleAxis<double> rot(theta_delta, _k);
     _l_turret = rot*_l_turret;
     _t_turret = rot*_t_turret;
     _l_turret.normalize();
@@ -193,13 +227,23 @@ void Tank::_move(const double dt,
     return;
 }
 
-void Tank::_fire(std::list<missile::Missile*>& missiles) {
-    if (_fire_this_turn) return;
-    _fire_this_turn = true;
-    if (_num_missiles <= 0) return;
-    missile::Missile* missile_ptr = new missile::Missile(num_missiles, _turrent_center.x(), _turrent_center.y(), _l_turret);
-    missiles.push_back(missile_ptr);
-    --_num_missiles;
+// void Tank::_fire(std::list<missile::Missile*>& missiles) {
+//     if (_fire_this_turn) return;
+//     _fire_this_turn = true;
+//     if (_num_missiles <= 0) return;
+//     missile::Missile* missile_ptr = new missile::Missile(num_missiles, _turrent_center.x(), _turrent_center.y(), _l_turret);
+//     missiles.push_back(missile_ptr);
+//     --_num_missiles;
+//     return;
+// }
+
+void Tank::update(const double dt) {
+    //Reset turn
+    this->_resetTurn();
+    //Take turn
+    this->_turn(dt);
+    //Set pose in base class
+    this->_setPose();
     return;
 }
 

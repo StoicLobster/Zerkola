@@ -4,21 +4,26 @@
 #include <SDL2/SDL.h>
 #include <string>
 #include <graphics.h>
+#include <Eigen/Dense>
 
 namespace sprite {
 
 class Sprite {
-    protected:
-    SDL_Rect _sourceRect; //location on sprite sheet to get sprite from
-    SDL_Texture* _spriteSheet;
-    double _x, _y;
+private:
+Eigen::Vector2i _center; //Current center location of sprite on screen
+Eigen::Vector2i _dir; //Current direction of sprite on screen
 
-    public:
-    Sprite();
-    Sprite(graphics::Graphics &graphics, const std::string &filePath, int sourceX, int sourceY, int width, int height, double posX, double posY);
-    virtual ~Sprite();
-    virtual void update();
-    void draw(graphics::Graphics& graphics, int x, int y); //where to draw graphics
+protected:
+SDL_Rect _sourceRect; //location on sprite sheet to get sprite from
+SDL_Texture* _spriteSheet; //Loaded sprite sheet
+
+public:
+Sprite();
+Sprite(graphics::Graphics &graphics, const std::string &filePath, int sourceX, int sourceY, int width, int height);
+virtual ~Sprite();
+void draw(graphics::Graphics& graphics); //Draws sprite to graphics with _center and _dir
+inline void setCenter(const Eigen::Vector2i& center) { _center = center; };
+inline void setDirection(const Eigen::Vector2i& dir) { _dir = dir; };
 };
 
 }

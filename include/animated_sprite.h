@@ -11,40 +11,33 @@
 namespace animated_sprite {
 
 class AnimatedSprite : public sprite::Sprite {
-public:
-    AnimatedSprite();
-    AnimatedSprite(graphics::Graphics& graphics, const std::string& filePath, int sourceX, int sourceY, int width, int height, 
-        double posX, double posY, double timeToUpdate);
-    void playAnimation(std::string animation, bool once = false); //plays the animation if its not already playing
-
-    void update(int elapsedTime); //updates the animated sprite timer
-
-    void draw(graphics::Graphics& graphics, int x, int y); //draw sprite on screen
+private:
+std::map< std::string, std::vector<SDL_Rect> > _animations; //map of all animations for this sprite
+//std::map< std::string, Eigen::Vector2d > _offsets;
+unsigned int _frameIdx;
+double _timeElapsed;
+bool _visible;
 
 protected:
-    double _timeToUpdate; //amount of time between frames
-    bool _currentAnimationOnce;
-    std::string _currentAnimation; //name of current animation
+double _timeToUpdate; //amount of time between frames
+bool _currentAnimationOnce; //True if want to only show animation once, otherwise loops
+std::string _currentAnimation; //name of current active animation
 
-    void addAnimation(int frames, int x, int y, std::string name, int width, int height, Eigen::Vector2d offset, bool reverse); //adds animation to map of animations
+void _addAnimation(int frames, int sprite_x0, int sprite_y0, std::string name, int width, int height, bool reverse); //adds animation to map of animations
+void _resetAnimations(); //clears out map of animations
+void _stopAnimation(); //stops current animations
+void _setVisible(bool visible); //changes visibility of animated sprite
+virtual void _animationDone(std::string currentAnimation) = 0; //Logic that happens when animation ends. Pure virtual.
+virtual void _setupAnimations() = 0; //Required function that sets up all animations for a sprite. Pure virtual.
 
-    void resetAnimations(); //clears out map of animations
+public:
+AnimatedSprite();
+AnimatedSprite(graphics::Graphics& graphics, const std::string& filePath, int sourceX, int sourceY, int width, int height, 
+    double posX, double posY, double timeToUpdate);
 
-    void stopAnimation(); //stops current animations
-
-    void setVisible(bool visible); //changes visibility of animated sprite
-
-    virtual void animationDone(std::string currentAnimation) = 0; //Logic that happens when animation ends. Pure virtual.
-
-    virtual void setupAnimations() = 0; //required function that sets up all animations for a sprite. Pure virtual.
-
-private:
-    std::map< std::string, std::vector<SDL_Rect> > _animations;
-    std::map< std::string, Eigen::Vector2d > _offsets;
-
-    unsigned int _frameIdx;
-    double _timeElapsed;
-    bool _visible;
+void playAnimation(std::string animation, bool once = false); //plays the animation if its not already playing
+void update(int elapsedTime); //updates the animated sprite timer and adjusts the sprite frame
+void draw(graphics::Graphics& graphics); //draw sprite on screen at current position and orientation (of Sprite)
 };
 
 }

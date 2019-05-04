@@ -19,7 +19,7 @@ Zerkola::~Zerkola() {}
 
 void Zerkola::loop() {         
     //Instantiate players
-    _tank_blue = tank::Tank(_graphics, gc::PlayerColor::BLUE); //Always human player
+    _tank_blue = tank::Tank(_graphics, gc::PlayerColor::BLUE, &_input); //Always human player
     //_tank_red = tank::Tank(_graphics, gc::PlayerColor::RED); TODO: Make AI
 
     int last_update_time_ms = SDL_GetTicks(); //[ms] time since SDL_Init was called
@@ -71,8 +71,8 @@ void Zerkola::draw() {
     return;    
 }
 
-void Zerkola::update() {
-    _tank_blue.turn(_elapsedTime);
+void Zerkola::update() {    
+    _tank_blue.update(_elapsedTime);
     return;
 }
 

@@ -4,6 +4,7 @@
  * Defines constants used throughout the game.
  */
 //Includes
+#include <Eigen/Dense>
 
 namespace gc {
 // Game definition
@@ -23,17 +24,29 @@ const double NORTH_LIMIT = 100;
 // Window size
 const int WINDOW_WIDTH = 640;
 const int WINDOW_HEIGHT = 480;
-// Sprites
+// Tank Sprites (Image Coordinate System)
 const double SPRITE_SCALE = 1.0;
-const char* const TANK_SPRITE_ANIMATION_LOCATION = "content/sprites/red_tank_2.png";
-const int TANK_SPRITE_UPDATE_RATE_MS = 100;
-const int NUMBER_TANK_SPRITE_ROLL_ANIMATIONS = 3;
-const int TANK_SPRITE_WIDTH = 29;
-const int TANK_SPRITE_HEIGHT = 31;
-const int RED_TANK_SPRITE_START_X = 0;
-const int RED_TANK_SPRITE_START_Y = 0;
-const int BLUE_TANK_SPRITE_START_X = 0;
-const int BLUE_TANK_SPRITE_START_Y = 0;
+const char* const TANK_SPRITE_ANIMATION_FILE_PATH = "content/sprites/tank_sprites.png";
+const int TANK_BODY_SPRITE_UPDATE_RATE_MS = 100;
+const int TANK_BODY_NUMBER_SPRITE_ROLL_ANIMATIONS = 3;
+const int TANK_BODY_SPRITE_WIDTH = 29;
+const int TANK_BODY_SPRITE_HEIGHT = 23;
+const int RED_TANK_BODY_SPRITE_START_X = 0;
+const int RED_TANK_BODY_SPRITE_START_Y = 0;
+const int BLUE_TANK_BODY_SPRITE_START_X = 0;
+const int BLUE_TANK_BODY_SPRITE_START_Y = RED_TANK_BODY_SPRITE_START_Y + TANK_BODY_SPRITE_HEIGHT;
+const int TANK_BODY_CENTER_RELATIVE_TO_UL_X = 14; //add to UL to get center
+const int TANK_BODY_CENTER_RELATIVE_TO_UL_Y = 12; //add to UL to get center
+const int TANK_TURRET_SPRITE_WIDTH = 11;
+const int TANK_TURRET_SPRITE_HEIGHT = 25;
+const int RED_TANK_TURRET_SPRITE_START_X = 0;
+const int RED_TANK_TURRET_SPRITE_START_Y = BLUE_TANK_BODY_SPRITE_START_Y + TANK_BODY_SPRITE_HEIGHT;
+const int BLUE_TANK_TURRET_SPRITE_START_X = 0;
+const int BLUE_TANK_TURRET_SPRITE_START_Y = RED_TANK_TURRET_SPRITE_START_Y + TANK_TURRET_SPRITE_HEIGHT;
+const int TANK_TURRET_CENTER_RELATIVE_TO_TURRET_UL_X = 5; //add to UL to get center
+const int TANK_TURRET_CENTER_RELATIVE_TO_TURRET_UL_Y = 18; //add to UL to get center
+const int TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_X = 0; //add to body center to get turret center
+const int TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_Y = 1; //add to body center to get turret center
 // Tank Dynamics
 const double TANK_MASS = 1000; //Mass of tank
 const double TANK_MOMENT_OF_INERTIA_Z = 200; //Moment of inertia of tank about z axis
@@ -50,10 +63,12 @@ const double TANK_TURRET_MAX_ANG = 95; //Maximum angle (+/-) that turret can mak
 const double TANK_RAD_COL = 2; //Radius of collision for tank
 const double TANK_ROLLING_RESIST_FRC = 100; //Rolling resistance of tracks
 const double TANK_ROLLING_RESIST_TRQ = 50; //Rolling resistance of tracks
-// Environment Dyncamis
-const Eigen::Vector3d X(1,0,0); //Global X unit vector
-const Eigen::Vector3d Y(0,1,0); //Global Y unit vector
-const Eigen::Vector3d Z(0,0,1); //Global Z unit vector
+// Environment Dyncamis (Note global frame is in image coordinate system)
+const Eigen::Vector2i X_2D(1,0); //Global X unit vector
+const Eigen::Vector2i Y_2D(0,-1); //Global Y unit vector
+const Eigen::Vector3i X_3D(1,0,0); //Global X unit vector
+const Eigen::Vector3i Y_3D(0,-1,0); //Global Y unit vector
+const Eigen::Vector3i Z_3D(0,0,-1); //Global Z unit vector
 const double SURF_STATIC_MU = 0.8;
 const double SURF_KINETIC_MU = 0.4;
 const double g = 9.81;
@@ -74,13 +89,13 @@ typedef enum PlayerType {
 } PlayerType;
 
 typedef enum LinearDirections {
-	NONE,
+	LINEAR_NONE,
 	FORWARD,
 	REVERSE
 } LinearDirections;
 
 typedef enum AngularDirections {
-	NONE,
+	ANGULAR_NONE,
 	CCW,
 	CW
 } AngularDirections;
