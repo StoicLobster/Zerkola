@@ -6,6 +6,8 @@
 #include <graphics.h>
 #include <Eigen/Dense>
 
+//#define DEBUG_SPRITE
+
 namespace sprite {
 
 class Sprite {

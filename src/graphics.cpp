@@ -5,12 +5,22 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <game_control.h>
+#include <iostream>
 
 namespace graphics {
 
-Graphics::Graphics() {
-    SDL_CreateWindowAndRenderer(gc::WINDOW_WIDTH, gc::WINDOW_HEIGHT, 0, &_window, &_renderer);
-    SDL_SetWindowTitle(_window, gc::GAME_TITLE);
+Graphics::Graphics():
+    _window(nullptr),
+    _renderer(nullptr)
+{
+    _window = SDL_CreateWindow(gc::GAME_TITLE, 100, 100, gc::WINDOW_WIDTH, gc::WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+    _renderer = SDL_CreateRenderer(_window, -1, 0);
+    if (_window == nullptr) {
+        std::cout << "Error could not create window" << SDL_GetError() << std::endl;
+    }
+    #ifdef DEBUG_GRAPHICS
+        std::cout << "Graphics::Graphics Constructor" << std::endl;
+    #endif
 }
 
 Graphics::~Graphics() {
@@ -30,11 +40,16 @@ void Graphics::blitSurface(SDL_Texture* texture, SDL_Rect* sourceRectangle, SDL_
 }
 
 void Graphics::renderCopy(SDL_Texture* texture, const SDL_Rect* sourceRectangle, const SDL_Rect* destinationRectangle, const double angle, const SDL_Point* center) {
-    SDL_RenderCopyEx(_renderer, texture, sourceRectangle, destinationRectangle, angle, center, SDL_RendererFlip::SDL_FLIP_NONE);
+    if (SDL_RenderCopyEx(_renderer, texture, sourceRectangle, destinationRectangle, angle, center, SDL_RendererFlip::SDL_FLIP_NONE)) {
+        std::cout << SDL_GetError() << std::endl;
+    }
     return;
 }
 
 void Graphics::flip() {
+    #ifdef DEBUG_GRAPHICS
+        //std::cout << "Graphics::flip()" << std::endl;
+    #endif
     SDL_RenderPresent(_renderer);
     return;
 }

@@ -61,7 +61,7 @@ const double TANK_BODY_MAX_LONG_VEL = 10; //Maximum longitudinal linear velocity
 const double TANK_BODY_MIN_LONG_VEL = -3; //Minimum longitudinal linear velocity of tank body
 const double TANK_TURRET_MAX_ANG = 95; //Maximum angle (+/-) that turret can make with body direction
 const double TANK_RAD_COL = 2; //Radius of collision for tank
-const double TANK_ROLLING_RESIST_FRC = 100; //Rolling resistance of tracks
+const double TANK_ROLLING_RESIST_FRC = 500; //Rolling resistance of tracks
 const double TANK_ROLLING_RESIST_TRQ = 50; //Rolling resistance of tracks
 // Environment Dyncamis (Note global frame is in image coordinate system)
 const Eigen::Vector2i X_2D(1,0); //Global X unit vector

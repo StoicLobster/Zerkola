@@ -8,6 +8,8 @@
 #include <graphics.h>
 #include <Eigen/Dense>
 
+//#define DEBUG_ANIMATED_SPRITE
+
 namespace animated_sprite {
 
 class AnimatedSprite : public sprite::Sprite {

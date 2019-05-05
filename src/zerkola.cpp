@@ -7,11 +7,15 @@
 #include <SDL2/SDL.h>
 #include <input.h>
 #include <algorithm>
+#include <iostream>
 
 namespace zerkola {
 
-Zerkola::Zerkola() {
-    SDL_Init(SDL_INIT_EVERYTHING);
+Zerkola::Zerkola():
+    _graphics(),
+    _input(),
+    _event()
+{
     loop(); //begin game
 }
 
@@ -59,10 +63,17 @@ void Zerkola::loop() {
 
         //Draw
         draw();
+
+        //Delay
+        double delay_duration = std::max(0.0, static_cast<double>(gc::MAX_FRAME_TIME_MS) - _elapsedTime);
+        SDL_Delay(delay_duration);
     }
 }
 
 void Zerkola::draw() {
+    #ifdef DEBUG_ZERKOLA 
+        std::cout << "Zerkola::draw()" << std::endl;
+    #endif
     _graphics.clear();
 
     _tank_blue.draw(_graphics);

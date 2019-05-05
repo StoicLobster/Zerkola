@@ -8,9 +8,11 @@
 //#include <iostream>
 #include <iostream>
 #include <zerkola.h>
+#include <SDL2/SDL.h>
 
 
 int main(int argc, const char* argv[]) {
+	SDL_Init(SDL_INIT_EVERYTHING);
 	//Instantiate Zerkola (game class)
 	//zerkola::Zerkola zrk;
 	std::cout << "Hi!" << std::endl;

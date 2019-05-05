@@ -4,13 +4,15 @@
 #include <tank.h>
 #include <graphics.h>
 
+//#define DEBUG_ZERKOLA
+
 namespace zerkola {
 
 class Zerkola {
 private:
+    graphics::Graphics _graphics; //Must be first, this is where SDL_Init lives
     input::Input _input;
-    SDL_Event _event; //Events that occur will be stored here by SDL
-    graphics::Graphics _graphics;
+    SDL_Event _event; //Events that occur will be stored here by SDL    
     tank::Tank _tank_red; //red tank
     tank::Tank _tank_blue; //blue tank
     double _elapsedTime; //Elapsed time this frame

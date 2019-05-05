@@ -5,6 +5,7 @@
 #include <animated_sprite.h>
 #include <game_control.h>
 #include <geometry.h>
+#include <iostream>
 
 namespace animated_sprite {
 
@@ -18,23 +19,30 @@ AnimatedSprite::AnimatedSprite(graphics::Graphics& graphics, const std::string& 
     _visible(true),
     _timeToUpdate(timeToUpdate),
     _currentAnimationOnce(false),
-    _currentAnimation("")       
-    {}
+    _currentAnimation("Idle")       
+    {
+        #ifdef DEBUG_ANIMATED_SPRITE 
+            std::cout << "===== AnimatedSprite Constructor Called =====" << std::endl;
+        #endif
+    }
 
 void AnimatedSprite::_addAnimation(int frames, int sprite_x0, int sprite_y0, std::string name, int width, int height, bool reverse) {
+    #ifdef DEBUG_ANIMATED_SPRITE 
+        std::cout << "AnimatedSprite::_addAnimation()" << std::endl;
+    #endif
     std::vector<SDL_Rect> rectangles;
-    int start, end;
     if (reverse) {
-        start = (frames - 1);
-        end = 0;
+        for (int i = (frames - 1); i <= 0; --i) {
+            SDL_Rect newRect = { sprite_x0 + i * width, sprite_y0, width, height };
+            rectangles.push_back(newRect);
+        }
     } else {
-        start = 0;
-        end = (frames - 1);
+        for (int i = 0; i <= (frames - 1); ++i) {
+            SDL_Rect newRect = { sprite_x0 + i * width, sprite_y0, width, height };
+            rectangles.push_back(newRect);
+        }
     }
-    for (int i = start; i <= end; ++i) {
-        SDL_Rect newRect = { sprite_x0 + i * width, sprite_y0, width, height };
-        rectangles.push_back(newRect);
-    }
+
     _animations.insert(std::pair< std::string, std::vector<SDL_Rect> >(name, rectangles));
     //_offsets.insert(std::pair<std::string, Eigen::Vector2d>(name,offset));
     return;
@@ -85,6 +93,9 @@ void AnimatedSprite::update(int elapsedTime) {
 }
 
 void AnimatedSprite::draw(graphics::Graphics& graphics) {
+    #ifdef DEBUG_ANIMATED_SPRITE 
+        std::cout << "AnimatedSprite::draw()" << std::endl;
+    #endif
     if (_visible) {
         //Set current _sourceRect
         _sourceRect = _animations[_currentAnimation][_frameIdx];

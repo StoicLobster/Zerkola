@@ -7,6 +7,8 @@
 #include <Eigen/Dense>
 #include <list>
 
+//#define DEBUG_TANK
+
 namespace tank {
 
 class Tank : public animated_sprite::AnimatedSprite {
@@ -49,7 +51,7 @@ template <typename T>
 inline void _integrate(const double dt, 
     T& x_k,
     const T& x_dot_k,
-    const T& x_dot_kp1) const { x_k += dt/2*(x_dot_k + x_dot_kp1); }; 
+    const T& x_dot_kp1) const { x_k += dt*(x_dot_k + x_dot_kp1)/2; }; 
 void _setPose(); //Sets pose in base Sprite class
 
 protected:
