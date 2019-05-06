@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <iostream>
+#include <geometry.h>
 
 namespace tank {
 
@@ -28,11 +29,11 @@ Tank::Tank(graphics::Graphics& graphics, gc::PlayerColor player_color, input::In
         player_color == gc::PlayerColor::RED ? gc::RED_TANK_TURRET_SPRITE_START_Y : gc::BLUE_TANK_TURRET_SPRITE_START_Y, 
         gc::TANK_TURRET_SPRITE_WIDTH, 
         gc::TANK_TURRET_SPRITE_HEIGHT),
-        _l_body(-1*gc::Y_3D.cast<double>()),
+        _l_body(gc::Y_3D.cast<double>()),
         _t_body(-1*gc::X_3D.cast<double>()),
-        _l_turret(-1*gc::Y_3D.cast<double>()),
+        _l_turret(gc::Y_3D.cast<double>()),
         _t_turret(-1*gc::X_3D.cast<double>()),
-        _k(-1*gc::Z_3D.cast<double>()),
+        _k(gc::Z_3D.cast<double>()),
         _body_lin_v(0.0,0.0,0.0),
         _body_lin_a(0.0,0.0,0.0),
         _body_ang_v(0.0,0.0,0.0),
@@ -59,11 +60,12 @@ Tank::Tank(graphics::Graphics& graphics, gc::PlayerColor player_color, input::In
         start_x = gc::BLUE_PLAYER_START_POS_X;
         start_y = gc::BLUE_PLAYER_START_POS_Y;
     }
+    //Set starting vectors and NEGATE y coordinate
     _body_center.x() = start_x;
-    _body_center.y() = start_y;
+    _body_center.y() = -1*start_y;
     _body_center.z() = 0.0;
     _turret_center.x() = static_cast<double>(start_x + gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_X);
-    _turret_center.y() = static_cast<double>(start_y + gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_Y);
+    _turret_center.y() = -1*static_cast<double>(start_y + gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_Y);
     _turret_center.z() = 0.0;
 
     //Setup animations
@@ -87,10 +89,11 @@ void Tank::_setupAnimations() {
     _addAnimation(1, sprite_start_x, sprite_start_y, "Idle", gc::TANK_BODY_SPRITE_WIDTH, gc::TANK_BODY_SPRITE_HEIGHT, false);
     _addAnimation(gc::TANK_BODY_NUMBER_SPRITE_ROLL_ANIMATIONS, sprite_start_x, sprite_start_y, "RollForward", gc::TANK_BODY_SPRITE_WIDTH, gc::TANK_BODY_SPRITE_HEIGHT, false);
     _addAnimation(gc::TANK_BODY_NUMBER_SPRITE_ROLL_ANIMATIONS, sprite_start_x, sprite_start_y, "RollBackward", gc::TANK_BODY_SPRITE_WIDTH, gc::TANK_BODY_SPRITE_HEIGHT, true);
+    //TODO add turning animations
     return;
 }
 
-void Tank::_turn(const double dt) {
+void Tank::_turn(const double dt_ms) {
     #ifdef DEBUG_TANK 
         std::cout << "Tank::_turn()" << std::endl;
     #endif
@@ -104,10 +107,10 @@ void Tank::_turn(const double dt) {
     }
     if (_input_ptr->wasKeyPressed(SDL_SCANCODE_UP) || _input_ptr->isKeyHeld(SDL_SCANCODE_UP)) {
         translate_body_cmnd = gc::LinearDirections::FORWARD;
-        _currentAnimation = "RollForward";
+        animated_sprite::AnimatedSprite::playAnimation("RollForward");
     } else if (_input_ptr->wasKeyPressed(SDL_SCANCODE_DOWN) || _input_ptr->isKeyHeld(SDL_SCANCODE_DOWN)) {
         translate_body_cmnd = gc::LinearDirections::REVERSE;
-        _currentAnimation = "RollBackward";
+        animated_sprite::AnimatedSprite::playAnimation("RollBackward");
     }
     if (_input_ptr->wasKeyPressed(SDL_SCANCODE_RIGHT) || _input_ptr->isKeyHeld(SDL_SCANCODE_RIGHT)) {
         rotate_body_cmnd = gc::AngularDirections::CW;
@@ -119,7 +122,7 @@ void Tank::_turn(const double dt) {
     } else if (_input_ptr->wasKeyPressed(SDL_SCANCODE_A) || _input_ptr->isKeyHeld(SDL_SCANCODE_A)) {
         rotate_turret_cmnd = gc::AngularDirections::CCW;
     }
-    _move(dt, translate_body_cmnd, rotate_body_cmnd, rotate_turret_cmnd);
+    _move(dt_ms, translate_body_cmnd, rotate_body_cmnd, rotate_turret_cmnd);
 
     
     return;
@@ -130,35 +133,39 @@ void Tank::_setPose() {
         std::cout << "Tank::_setPose()" << std::endl;
     #endif
     //Tank Body
-    Eigen::Vector2i c_body(_body_center.cast<int>().x(),_body_center.cast<int>().y());
+    Eigen::Vector2i c_body(_body_center.cast<int>().x(), -1*_body_center.cast<int>().y());
     this->setCenter(c_body);
-    Eigen::Vector2i d_body(_l_body.cast<int>().x(),_l_body.cast<int>().y());
+    Eigen::Vector2i d_body(_l_body.cast<int>().x(), _l_body.cast<int>().y());
     this->setDirection(d_body);
     //Tank Turret
-    Eigen::Vector2i c_turret(_turret_center.cast<int>().x(),_turret_center.cast<int>().y());
+    Eigen::Vector2i c_turret(_turret_center.cast<int>().x(), -1*_turret_center.cast<int>().y());
     _turret.setCenter(c_turret);
-    Eigen::Vector2i d_turret(_l_turret.cast<int>().x(),_l_turret.cast<int>().y());
+    Eigen::Vector2i d_turret(_l_turret.cast<int>().x(), _l_turret.cast<int>().y());
     _turret.setDirection(d_turret);
     return;
 }
 
-void Tank::_move(const double dt, 
+void Tank::_move(const double dt_ms, 
     const gc::LinearDirections translate_body_cmnd, 
     const gc::AngularDirections rotate_body_cmnd,
     const gc::AngularDirections rotate_turret_cmnd) {
     #ifdef DEBUG_TANK 
         std::cout << "Tank::_move()" << std::endl;
-        std::cout << "dt: " << dt << std::endl;
     #endif
     //Check if move already occurred
     if (_move_this_turn) return;
     _move_this_turn = true;
+    double dt_s = dt_ms/1000.0;
+    #ifdef DEBUG_TANK 
+        std::cout << "dt_ms: " << dt_ms << std::endl;
+        std::cout << "dt_s: " << dt_s << std::endl;
+    #endif
 
-    //Check unit vectors
-    assert(_l_body.norm() == 1.0);
-    assert(_t_body.norm() == 1.0);
-    assert(_l_turret.norm() == 1.0);
-    assert(_t_turret.norm() == 1.0);
+    //Normalize unit vectors
+    _l_body.normalize();
+    _t_body.normalize();
+    _l_turret.normalize();
+    _t_turret.normalize();
 
     //Store previous states
     _body_lin_v_prev = _body_lin_v;
@@ -215,13 +222,13 @@ void Tank::_move(const double dt,
             std::cout << "_body_ang_a: " << _body_ang_a << std::endl;
         #endif
         //Integrate angular acceleration
-        _integrate(dt, _body_ang_v, _body_ang_a_prev, _body_ang_a);
+        _integrate(dt_s, _body_ang_v, _body_ang_a_prev, _body_ang_a);
         #ifdef DEBUG_TANK 
             std::cout << "_body_ang_v: " << _body_ang_v << std::endl;
         #endif
         //Integrate angular velocity
         double theta_delta = 0.0; //TODO: Cleaner way to handle angular position?
-        _integrate(dt, theta_delta, _body_ang_v_prev.norm(), _body_ang_v.norm());
+        _integrate(dt_s, theta_delta, _body_ang_v_prev.norm(), _body_ang_v.norm());
         #ifdef DEBUG_TANK 
             std::cout << "theta_delta: " << theta_delta << std::endl;
         #endif
@@ -243,71 +250,95 @@ void Tank::_move(const double dt,
             std::cout << "_t_turret: " << _t_turret << std::endl;
         #endif
         /*** Newton's Second Law - Force Balance ***/
-        Eigen::Vector3d F_RR, F_prop, F_road;
-        F_RR = gc::TANK_ROLLING_RESIST_FRC * -1 * _l_body; //rolling resistance of tracks (resists longitudinal motion)
+        Eigen::Vector3d F_prop(0,0,0), F_road(0,0,0);
         F_prop = _translate_body_frc_cmnd * _l_body; //total propulsion force
         F_road = _body_ang_v.cross(_body_lin_v); //centripetal force applied by road (since no slip we know road can supply it)
-        _body_lin_a = 1/gc::TANK_MASS * (F_RR + F_prop + F_road);
+        _body_lin_a = 1/gc::TANK_MASS * (F_prop + F_road);
         #ifdef DEBUG_TANK 
             std::cout << "== LINEAR ==" << std::endl;
-            std::cout << "F_RR: " << F_RR << std::endl;
             std::cout << "F_prop: " << F_prop << std::endl;
             std::cout << "F_road: " << F_road << std::endl;
             std::cout << "_body_lin_a: " << _body_lin_a << std::endl;
-            std::cout << "pure zero?: " << (_body_lin_a.y() == 0) << std::endl;
         #endif
         //Integrate linear acceleration
-        _integrate(dt, _body_lin_v, _body_lin_a_prev, _body_lin_a);
+        _integrate(dt_s, _body_lin_v, _body_lin_a_prev, _body_lin_a);
+        double v_lin_mag = _body_lin_v.norm();
+        v_lin_mag = std::max(v_lin_mag, gc::TANK_BODY_MIN_LONG_VEL);
+        v_lin_mag = std::min(v_lin_mag, gc::TANK_BODY_MAX_LONG_VEL);
+        _body_lin_v.normalize();
+        _body_lin_v = v_lin_mag*_body_lin_v;
         #ifdef DEBUG_TANK 
             std::cout << "_body_lin_v: " << _body_lin_v << std::endl;
-            std::cout << "pure zero?: " << (_body_lin_v.y() == 0) << std::endl;
-            //x_k += dt*(x_dot_k + x_dot_kp1)/2
-            std::cout << "test: " << (dt*(_body_lin_a_prev + _body_lin_a)/2) << std::endl;
         #endif
         //Integrate linear velocity
-        _integrate(dt, _body_center, _body_lin_v_prev, _body_lin_v);
-        _integrate(dt, _turret_center, _body_lin_v_prev, _body_lin_v);
+        _integrate(dt_s, _body_center, _body_lin_v_prev, _body_lin_v);
         #ifdef DEBUG_TANK 
             std::cout << "_body_center: " << _body_center << std::endl;
-            std::cout << "_turret_center: " << _turret_center << std::endl;
         #endif
         
     } else {
         /* SLIP */
         _tractive_accel_limit_mag = gc::g*gc::SURF_KINETIC_MU;
 
+        #ifdef DEBUG_TANK 
+            std::cout << "_tractive_accel_limit_mag: " << _tractive_accel_limit_mag << std::endl;
+        #endif
+
         //Really no idea how to model slip. This is a total guess.
         /*** Newton's Second Law - Force Balance ***/
         //Only force is force of kinetic friction in a direction opposite to current velocity
-        Eigen::Vector3d F_fric = gc::TANK_MASS * gc::g * gc::SURF_KINETIC_MU * -1 * _body_lin_v / _body_lin_v.norm();
+        Eigen::Vector3d v_dir = _body_lin_v / _body_lin_v.norm();
+        Eigen::Vector3d F_fric = gc::TANK_MASS * gc::g * gc::SURF_KINETIC_MU * -1 * v_dir;
         _body_lin_a = 1/gc::TANK_MASS * F_fric;
         //Integrate linear acceleration
-        _integrate(dt, _body_lin_v, _body_lin_a_prev, _body_lin_a);
+        _integrate(dt_s, _body_lin_v, _body_lin_a_prev, _body_lin_a);
         //Integrate linear velocity
-        _integrate(dt, _body_center, _body_lin_v_prev, _body_lin_v);
-        _integrate(dt, _turret_center, _body_lin_v_prev, _body_lin_v);
+        _integrate(dt_s, _body_center, _body_lin_v_prev, _body_lin_v);
     }
 
-    /*** Rotate Tank Turret ***/
-    if (rotate_turret_cmnd == gc::AngularDirections::CCW) _rotate_turret_spd_cmnd = gc::TANK_TURRET_ROT_SPD;
-    else if (rotate_turret_cmnd == gc::AngularDirections::CW) _rotate_turret_spd_cmnd = -1 * gc::TANK_TURRET_ROT_SPD;
-    #ifdef DEBUG_TANK 
-        std::cout << "_rotate_turret_spd_cmnd: " << _rotate_turret_spd_cmnd << std::endl;
-    #endif
+    //Limit Tank Position
+    if (_body_center.x() < gc::MIN_X) _body_center.x() = gc::MIN_X;
+    if (_body_center.x() > gc::MAX_X) _body_center.x() = gc::MAX_X;
+    if (_body_center.y() < gc::MIN_Y) _body_center.y() = gc::MIN_Y;
+    if (_body_center.y() > gc::MAX_Y) _body_center.y() = gc::MAX_Y;
 
-    double theta_delta = _rotate_turret_spd_cmnd*dt;
+    //Set Turret Position
+    Eigen::Vector3d body_to_turret(gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_X, gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_Y, 0);
+    Eigen::AngleAxis<double> rot(geo::AngBetweenVecs(gc::Y_3D.cast<double>(), _l_body), _k);
+    body_to_turret = rot*body_to_turret;
+    _turret_center = _body_center + body_to_turret;
+
+    /*** Rotate Tank Turret ***/
+    //Check if turret rotation already exceeded    
+    double alpha = geo::AngBetweenVecs(_l_body, _l_turret)*geo::RAD_TO_DEG;
     #ifdef DEBUG_TANK 
-        std::cout << "theta_delta: " << theta_delta << std::endl;
+        std::cout << "alpha: " << alpha << std::endl;
     #endif
-    Eigen::AngleAxis<double> rot(theta_delta, _k);
-    _l_turret = rot*_l_turret;
-    _t_turret = rot*_t_turret;
-    _l_turret.normalize();
-    _t_turret.normalize();
-    #ifdef DEBUG_TANK 
-        std::cout << "_l_turret: " << _l_turret << std::endl;
-        std::cout << "_t_turret: " << _t_turret << std::endl;
-    #endif
+    if ( (alpha < gc::TANK_TURRET_MAX_ANG) && (alpha > -1*gc::TANK_TURRET_MAX_ANG) ) {
+        //Rotate
+        if (rotate_turret_cmnd == gc::AngularDirections::CCW) _rotate_turret_spd_cmnd = gc::TANK_TURRET_ROT_SPD;
+        else if (rotate_turret_cmnd == gc::AngularDirections::CW) _rotate_turret_spd_cmnd = -1 * gc::TANK_TURRET_ROT_SPD;
+        #ifdef DEBUG_TANK 
+            std::cout << "_rotate_turret_spd_cmnd: " << _rotate_turret_spd_cmnd << std::endl;
+        #endif
+        double theta_delta_max = gc::TANK_TURRET_MAX_ANG - alpha;
+        double theta_delta_min = -1*gc::TANK_TURRET_MAX_ANG - alpha;
+        double theta_delta = _rotate_turret_spd_cmnd*dt_s*geo::RAD_TO_DEG;
+        theta_delta = std::max(theta_delta, theta_delta_min);
+        theta_delta = std::min(theta_delta, theta_delta_max);
+        #ifdef DEBUG_TANK 
+            std::cout << "theta_delta: " << theta_delta << std::endl;
+        #endif
+        Eigen::AngleAxis<double> rot(theta_delta/geo::RAD_TO_DEG, _k);
+        _l_turret = rot*_l_turret;
+        _t_turret = rot*_t_turret;
+        _l_turret.normalize();
+        _t_turret.normalize();
+        #ifdef DEBUG_TANK 
+            std::cout << "_l_turret: " << _l_turret << std::endl;
+            std::cout << "_t_turret: " << _t_turret << std::endl;
+        #endif
+    }
     
     return;
 }
@@ -322,14 +353,22 @@ void Tank::_move(const double dt,
 //     return;
 // }
 
-void Tank::update(const double dt) {
+void Tank::drawTank(graphics::Graphics& graphics) {
+    //Draw body
+    animated_sprite::AnimatedSprite::draw(graphics);
+    //Draw turret
+    _turret.draw(graphics);
+    return;
+}
+
+void Tank::update(const double dt_ms) {
     #ifdef DEBUG_TANK 
         std::cout << "Tank::update()" << std::endl;
     #endif
     //Reset turn
     this->_resetTurn();
     //Take turn
-    this->_turn(dt);
+    this->_turn(dt_ms);
     //Set pose in base class
     this->_setPose();
     return;

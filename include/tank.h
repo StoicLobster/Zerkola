@@ -7,7 +7,7 @@
 #include <Eigen/Dense>
 #include <list>
 
-//#define DEBUG_TANK
+#define DEBUG_TANK
 
 namespace tank {
 
@@ -48,19 +48,19 @@ void _setupAnimations();
 
 inline void _resetTurn() {_fire_this_turn = false; _move_this_turn = false; }; //Resets turn
 template <typename T>
-inline void _integrate(const double dt, 
+inline void _integrate(const double dt_s, 
     T& x_k,
     const T& x_dot_k,
-    const T& x_dot_kp1) const { x_k += dt*(x_dot_k + x_dot_kp1)/2; }; 
-void _setPose(); //Sets pose in base Sprite class
+    const T& x_dot_kp1) const { x_k += dt_s*(x_dot_k + x_dot_kp1)/2; }; 
+void _setPose(); //Sets pose in base Sprite class and transforms to screen coordinates (negate y)
 
 protected:
-void _move(const double dt, 
+void _move(const double dt_ms, 
     const gc::LinearDirections translate_body_cmnd, 
     const gc::AngularDirections rotate_body_cmnd,
     const gc::AngularDirections rotate_turret_cmnd); //moves the tank with the provided commands
 //void _fire(std::list<missile::Missile*>& missiles); //Fires a missile (if able) and apends it to the list
-virtual void _turn(const double dt); //Takes turn. Default is for human player with keyboard inputs
+virtual void _turn(const double dt_ms); //Takes turn. Default is for human player with keyboard inputs
 /* Integration (Trapezoidal)
  * Solves for state x k+1 (x_kp1)
  * x_k+1 = x_k + dt*(x_dot_k + x_dot_k+1)/2
@@ -71,7 +71,8 @@ Tank();
 ~Tank();
 Tank(graphics::Graphics& graphics, gc::PlayerColor player_color, input::Input* input_ptr = nullptr);
 
-void update(const double dt); //Takes tank turn and does housekeeping
+void update(const double dt_ms); //Takes tank turn and does housekeeping
+void drawTank(graphics::Graphics& graphics); //Draws all parts of the tank
 
 };
 

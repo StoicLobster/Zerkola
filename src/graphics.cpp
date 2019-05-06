@@ -13,7 +13,7 @@ Graphics::Graphics():
     _window(nullptr),
     _renderer(nullptr)
 {
-    _window = SDL_CreateWindow(gc::GAME_TITLE, 100, 100, gc::WINDOW_WIDTH, gc::WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+    _window = SDL_CreateWindow(gc::GAME_TITLE, gc::WINDOW_SCREEN_LOCATION_X, gc::WINDOW_SCREEN_LOCATION_Y, gc::WINDOW_WIDTH, gc::WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
     _renderer = SDL_CreateRenderer(_window, -1, 0);
     if (_window == nullptr) {
         std::cout << "Error could not create window" << SDL_GetError() << std::endl;

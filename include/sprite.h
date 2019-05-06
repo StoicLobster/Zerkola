@@ -6,7 +6,7 @@
 #include <graphics.h>
 #include <Eigen/Dense>
 
-//#define DEBUG_SPRITE
+#define DEBUG_SPRITE
 
 namespace sprite {
 
@@ -23,7 +23,7 @@ public:
 Sprite();
 Sprite(graphics::Graphics &graphics, const std::string &filePath, int sourceX, int sourceY, int width, int height);
 virtual ~Sprite();
-void draw(graphics::Graphics& graphics); //Draws sprite to graphics with _center and _dir
+void draw(graphics::Graphics& graphics) const; //Draws sprite to graphics with _center and _dir
 inline void setCenter(const Eigen::Vector2i& center) { _center = center; };
 inline void setDirection(const Eigen::Vector2i& dir) { _dir = dir; };
 };

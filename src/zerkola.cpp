@@ -76,7 +76,7 @@ void Zerkola::draw() {
     #endif
     _graphics.clear();
 
-    _tank_blue.draw(_graphics);
+    _tank_blue.drawTank(_graphics);
 
     _graphics.flip();
     return;    
