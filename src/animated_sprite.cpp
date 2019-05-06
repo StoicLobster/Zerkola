@@ -12,8 +12,8 @@ namespace animated_sprite {
 AnimatedSprite::AnimatedSprite() {}
 
 AnimatedSprite::AnimatedSprite(graphics::Graphics& graphics, const std::string& filePath, int sourceX, int sourceY,
-    int width, int height, double posX, double posY, double timeToUpdate):
-    Sprite(graphics, filePath, sourceX, sourceY, width, height),
+    int width, int height, double posX, double posY, double timeToUpdate, int UL_x, int UL_y):
+    Sprite(graphics, filePath, sourceX, sourceY, width, height, UL_x, UL_y),
     _frameIdx(0),
     _timeElapsed(0.0),
     _visible(true),
@@ -32,7 +32,7 @@ void AnimatedSprite::_addAnimation(int frames, int sprite_x0, int sprite_y0, std
     #endif
     std::vector<SDL_Rect> rectangles;
     if (reverse) {
-        for (int i = (frames - 1); i <= 0; --i) {
+        for (int i = (frames - 1); i >= 0; --i) {
             SDL_Rect newRect = { sprite_x0 + i * width, sprite_y0, width, height };
             rectangles.push_back(newRect);
         }

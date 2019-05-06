@@ -71,7 +71,7 @@ Tank();
 ~Tank();
 Tank(graphics::Graphics& graphics, gc::PlayerColor player_color, input::Input* input_ptr = nullptr);
 
-void update(const double dt_ms); //Takes tank turn and does housekeeping
+void updateTank(const double dt_ms); //Takes tank turn and does housekeeping
 void drawTank(graphics::Graphics& graphics); //Draws all parts of the tank
 
 };

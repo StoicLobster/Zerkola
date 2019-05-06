@@ -38,7 +38,7 @@ const int RED_TANK_BODY_SPRITE_START_Y = 0;
 const int BLUE_TANK_BODY_SPRITE_START_X = 0;
 const int BLUE_TANK_BODY_SPRITE_START_Y = RED_TANK_BODY_SPRITE_START_Y + TANK_BODY_SPRITE_HEIGHT;
 const int TANK_BODY_CENTER_RELATIVE_TO_UL_X = 14; //add to UL to get center
-const int TANK_BODY_CENTER_RELATIVE_TO_UL_Y = 12; //add to UL to get center
+const int TANK_BODY_CENTER_RELATIVE_TO_UL_Y = 11; //add to UL to get center
 const int TANK_TURRET_SPRITE_WIDTH = 11;
 const int TANK_TURRET_SPRITE_HEIGHT = 25;
 const int RED_TANK_TURRET_SPRITE_START_X = 0;
@@ -50,21 +50,23 @@ const int TANK_TURRET_CENTER_RELATIVE_TO_TURRET_UL_Y = 18; //add to UL to get ce
 const int TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_X = 0; //add to body center to get turret center
 const int TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_Y = 1; //add to body center to get turret center
 // Tank Dynamics
-const double TANK_RAD_COL = 30; //Radius of collision for tank
-const double TANK_MASS = 1000; //Mass of tank
-const double TANK_MOMENT_OF_INERTIA_Z = 200; //Moment of inertia of tank about z axis
-const double TANK_BODY_FRWD_FRC_INC_CMND = 5; //Force that is incremented from a forward move command
-const double TANK_BODY_REV_FRC_DEC_CMND = 50; //Force that is decremented from a reverse move command
-const double TANK_BODY_ROT_TRQ_INC_CMD = 30; //Torque that is incremented for a CCW rotate command and decremented for CW
-const double TANK_TURRET_ROT_SPD = 10; //Angular rotation speed of tank turret when commanded
-const double TANK_BODY_MAX_FRWD_FRC = 300; //Maximum forward force command
-const double TANK_BODY_MAX_REV_FRC = -500; //Maximum reverse force command
-const double TANK_BODY_MAX_ROT_TRQ = 100; //Maximum rotation torque command
-const double TANK_BODY_MAX_LONG_VEL = 10; //Maximum longitudinal linear velocity of tank body
-const double TANK_BODY_MIN_LONG_VEL = -3; //Minimum longitudinal linear velocity of tank body
-const double TANK_TURRET_MAX_ANG = 130; //Maximum angle (+/-) that turret can make with body direction
-//const double TANK_ROLLING_RESIST_FRC = 500; //Rolling resistance of tracks
-//const double TANK_ROLLING_RESIST_TRQ = 50; //Rolling resistance of tracks
+const double TANK_RAD_COL = 30; //[m] Radius of collision for tank
+const double TANK_MASS = 1000; //[kg] Mass of tank
+const double TANK_MOMENT_OF_INERTIA_Z = 500; //[kg*m^2] Moment of inertia of tank about z axis
+const double TANK_BODY_FRWD_FRC_RATE_LIMIT = 1000; //[N/s] Force rate limit for a forward move command
+const double TANK_BODY_REV_FRC_RATE_LIMIT = -500; //[N/s] Force rate limit for a reverse move command
+const double TANK_BODY_ROT_TRQ_RATE_LIMIT = 500; //[N*m/s] Torque rate limit for a rotate command
+const double TANK_TURRET_ROT_SPD = 10; //[deg/s] Angular rotation speed of tank turret when commanded
+const double TANK_BODY_MAX_FRWD_FRC = 3000; //[N] Maximum forward force command
+const double TANK_BODY_MAX_REV_FRC = -5000; //[N] Maximum reverse force command
+const double TANK_BODY_MAX_ROT_TRQ = 1000; //[N*m] Maximum rotation torque command
+const double TANK_BODY_MAX_LONG_VEL = 10; //[m/s] Maximum longitudinal linear velocity of tank body
+const double TANK_BODY_MIN_LONG_VEL = -3; //[m/s] Minimum longitudinal linear velocity of tank body
+const double TANK_TURRET_MAX_ANG = 130; //[deg] Maximum angle (+/-) that turret can make with body direction
+// Missile Dynamics
+const double MISSLE_SPEED = 2; //default missile speed
+const long double MISSILE_ACTIVE_DIST = 5; //Distance missile must travel before it becomes active
+const long double MISSILE_MAX_DIST = 999999; //Maximum distance a missile can travel before being deleted TODO
 // Coordinate Systems
 // Note these are used for physics. All physics must occur in quadrant 4 (x >= 0 && y <= 0)
 const Eigen::Vector2i X_2D(1,0); //Global X unit vector
@@ -80,12 +82,9 @@ const double MAX_Y = -1*WINDOW_MARGIN;
 // Environment Dyncamis
 const double SURF_STATIC_MU = 0.8;
 const double SURF_KINETIC_MU = 0.4;
-const double g = 9.81;
-const double RR_SPEED_THRESH = 0.1; //Speed threshold for rolling resistance to come into effect
-// Missile Dynamics
-const double MISSLE_SPEED = 2; //default missile speed
-const long double MISSILE_ACTIVE_DIST = 5; //Distance missile must travel before it becomes active
-const long double MISSILE_MAX_DIST = 999999; //Maximum distance a missile can travel before being deleted TODO
+const double g = 9.81; //[m/s^2]
+const double RR_SPEED_THRESH = 0.1; //[m/s] Speed threshold for rolling resistance to come into effect
+
 
 typedef enum PlayerColor {
 	RED,

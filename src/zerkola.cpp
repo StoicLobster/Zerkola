@@ -83,7 +83,7 @@ void Zerkola::draw() {
 }
 
 void Zerkola::update() {    
-    _tank_blue.update(_elapsedTime);
+    _tank_blue.updateTank(_elapsedTime);
     return;
 }
 

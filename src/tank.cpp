@@ -18,9 +18,11 @@ Tank::Tank(graphics::Graphics& graphics, gc::PlayerColor player_color, input::In
         player_color == gc::PlayerColor::RED ? gc::RED_TANK_BODY_SPRITE_START_Y : gc::BLUE_TANK_BODY_SPRITE_START_Y, 
         gc::TANK_BODY_SPRITE_WIDTH, 
         gc::TANK_BODY_SPRITE_HEIGHT,
-        player_color == gc::PlayerColor::RED ? gc::RED_PLAYER_START_POS_X : gc::BLUE_PLAYER_START_POS_X, 
-        player_color == gc::PlayerColor::RED ? gc::RED_PLAYER_START_POS_Y : gc::BLUE_PLAYER_START_POS_Y, 
-        gc::TANK_BODY_SPRITE_UPDATE_RATE_MS),
+        (player_color == gc::PlayerColor::RED ? gc::RED_PLAYER_START_POS_X : gc::BLUE_PLAYER_START_POS_X), 
+        (player_color == gc::PlayerColor::RED ? gc::RED_PLAYER_START_POS_Y : gc::BLUE_PLAYER_START_POS_Y), 
+        gc::TANK_BODY_SPRITE_UPDATE_RATE_MS,
+        -1*gc::TANK_BODY_CENTER_RELATIVE_TO_UL_X,
+        -1*gc::TANK_BODY_CENTER_RELATIVE_TO_UL_Y),
         _color(player_color),
         _input_ptr(input_ptr),
         _turret(graphics, 
@@ -28,7 +30,9 @@ Tank::Tank(graphics::Graphics& graphics, gc::PlayerColor player_color, input::In
         player_color == gc::PlayerColor::RED ? gc::RED_TANK_TURRET_SPRITE_START_X : gc::BLUE_TANK_TURRET_SPRITE_START_X, 
         player_color == gc::PlayerColor::RED ? gc::RED_TANK_TURRET_SPRITE_START_Y : gc::BLUE_TANK_TURRET_SPRITE_START_Y, 
         gc::TANK_TURRET_SPRITE_WIDTH, 
-        gc::TANK_TURRET_SPRITE_HEIGHT),
+        gc::TANK_TURRET_SPRITE_HEIGHT,
+        -1*gc::TANK_TURRET_CENTER_RELATIVE_TO_TURRET_UL_X,
+        -1*gc::TANK_TURRET_CENTER_RELATIVE_TO_TURRET_UL_Y),
         _l_body(gc::Y_3D.cast<double>()),
         _t_body(-1*gc::X_3D.cast<double>()),
         _l_turret(gc::Y_3D.cast<double>()),
@@ -135,12 +139,12 @@ void Tank::_setPose() {
     //Tank Body
     Eigen::Vector2i c_body(_body_center.cast<int>().x(), -1*_body_center.cast<int>().y());
     this->setCenter(c_body);
-    Eigen::Vector2i d_body(_l_body.cast<int>().x(), _l_body.cast<int>().y());
+    Eigen::Vector2d d_body(_l_body.x(), _l_body.y());
     this->setDirection(d_body);
     //Tank Turret
     Eigen::Vector2i c_turret(_turret_center.cast<int>().x(), -1*_turret_center.cast<int>().y());
     _turret.setCenter(c_turret);
-    Eigen::Vector2i d_turret(_l_turret.cast<int>().x(), _l_turret.cast<int>().y());
+    Eigen::Vector2d d_turret(_l_turret.x(), _l_turret.y());
     _turret.setDirection(d_turret);
     return;
 }
@@ -155,6 +159,7 @@ void Tank::_move(const double dt_ms,
     //Check if move already occurred
     if (_move_this_turn) return;
     _move_this_turn = true;
+    if (dt_ms == 0.0) return;
     double dt_s = dt_ms/1000.0;
     #ifdef DEBUG_TANK 
         std::cout << "dt_ms: " << dt_ms << std::endl;
@@ -181,15 +186,12 @@ void Tank::_move(const double dt_ms,
     #endif
     
     //Apply linear body motion commands
-    if (translate_body_cmnd == gc::LinearDirections::FORWARD) _translate_body_frc_cmnd += gc::TANK_BODY_FRWD_FRC_INC_CMND;
-    else if (translate_body_cmnd == gc::LinearDirections::REVERSE) _translate_body_frc_cmnd -= gc::TANK_BODY_REV_FRC_DEC_CMND;
-    //Limit force command
-    _translate_body_frc_cmnd = std::max( _translate_body_frc_cmnd, gc::TANK_BODY_MAX_REV_FRC ); //tank force limits
-    _translate_body_frc_cmnd = std::min( _translate_body_frc_cmnd, gc::TANK_BODY_MAX_FRWD_FRC );
+    if (translate_body_cmnd == gc::LinearDirections::FORWARD) _translate_body_frc_cmnd += std::min(gc::TANK_BODY_FRWD_FRC_RATE_LIMIT, (gc::TANK_BODY_MAX_FRWD_FRC - _translate_body_frc_cmnd)/dt_s)*dt_s;
+    else if (translate_body_cmnd == gc::LinearDirections::REVERSE) _translate_body_frc_cmnd += std::max(gc::TANK_BODY_REV_FRC_RATE_LIMIT, (gc::TANK_BODY_MAX_REV_FRC - _translate_body_frc_cmnd)/dt_s)*dt_s;
 
     //Apply rotational body motion commands
-    if (rotate_body_cmnd == gc::AngularDirections::CCW) _rotate_body_torque_cmnd += gc::TANK_BODY_ROT_TRQ_INC_CMD;
-    else if (rotate_body_cmnd == gc::AngularDirections::CW) _rotate_body_torque_cmnd -= gc::TANK_BODY_ROT_TRQ_INC_CMD;
+    if (rotate_body_cmnd == gc::AngularDirections::CCW) _rotate_body_torque_cmnd += std::min(gc::TANK_BODY_ROT_TRQ_RATE_LIMIT, (gc::TANK_BODY_MAX_ROT_TRQ - _translate_body_frc_cmnd)/dt_s)*dt_s;
+    else if (rotate_body_cmnd == gc::AngularDirections::CW) _rotate_body_torque_cmnd += std::max(-1*gc::TANK_BODY_ROT_TRQ_RATE_LIMIT, (-1*gc::TANK_BODY_MAX_ROT_TRQ - _translate_body_frc_cmnd)/dt_s)*dt_s;
     //Limit torque command
     _rotate_body_torque_cmnd = std::max( _rotate_body_torque_cmnd, -1*gc::TANK_BODY_MAX_ROT_TRQ ); //tank torque limits
     _rotate_body_torque_cmnd = std::min( _rotate_body_torque_cmnd, gc::TANK_BODY_MAX_ROT_TRQ );
@@ -228,7 +230,7 @@ void Tank::_move(const double dt_ms,
         #endif
         //Integrate angular velocity
         double theta_delta = 0.0; //TODO: Cleaner way to handle angular position?
-        _integrate(dt_s, theta_delta, _body_ang_v_prev.norm(), _body_ang_v.norm());
+        _integrate(dt_s, theta_delta, _body_ang_v_prev.z(), _body_ang_v.z());
         #ifdef DEBUG_TANK 
             std::cout << "theta_delta: " << theta_delta << std::endl;
         #endif
@@ -303,7 +305,7 @@ void Tank::_move(const double dt_ms,
     if (_body_center.y() > gc::MAX_Y) _body_center.y() = gc::MAX_Y;
 
     //Set Turret Position
-    Eigen::Vector3d body_to_turret(gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_X, gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_Y, 0);
+    Eigen::Vector3d body_to_turret(gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_X, -1*gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_Y, 0);
     Eigen::AngleAxis<double> rot(geo::AngBetweenVecs(gc::Y_3D.cast<double>(), _l_body), _k);
     body_to_turret = rot*body_to_turret;
     _turret_center = _body_center + body_to_turret;
@@ -323,11 +325,11 @@ void Tank::_move(const double dt_ms,
         #endif
         double theta_delta_max = gc::TANK_TURRET_MAX_ANG - alpha;
         double theta_delta_min = -1*gc::TANK_TURRET_MAX_ANG - alpha;
-        double theta_delta = _rotate_turret_spd_cmnd*dt_s*geo::RAD_TO_DEG;
+        double theta_delta = _rotate_turret_spd_cmnd*dt_s;
         theta_delta = std::max(theta_delta, theta_delta_min);
         theta_delta = std::min(theta_delta, theta_delta_max);
         #ifdef DEBUG_TANK 
-            std::cout << "theta_delta: " << theta_delta << std::endl;
+            std::cout << "theta_delta [deg]: " << theta_delta << std::endl;
         #endif
         Eigen::AngleAxis<double> rot(theta_delta/geo::RAD_TO_DEG, _k);
         _l_turret = rot*_l_turret;
@@ -361,10 +363,12 @@ void Tank::drawTank(graphics::Graphics& graphics) {
     return;
 }
 
-void Tank::update(const double dt_ms) {
+void Tank::updateTank(const double dt_ms) {
     #ifdef DEBUG_TANK 
         std::cout << "Tank::update()" << std::endl;
     #endif
+    //Update animatedSprite
+    animated_sprite::AnimatedSprite::update(dt_ms);
     //Reset turn
     this->_resetTurn();
     //Take turn
