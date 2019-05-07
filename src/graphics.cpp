@@ -13,11 +13,14 @@ Graphics::Graphics():
     _window(nullptr),
     _renderer(nullptr)
 {
-    _window = SDL_CreateWindow(gc::GAME_TITLE, gc::WINDOW_SCREEN_LOCATION_X, gc::WINDOW_SCREEN_LOCATION_Y, gc::WINDOW_WIDTH, gc::WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+    _window = SDL_CreateWindow(gc::GAME_TITLE, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, gc::WINDOW_WIDTH, gc::WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
     _renderer = SDL_CreateRenderer(_window, -1, 0);
     if (_window == nullptr) {
         std::cout << "Error could not create window" << SDL_GetError() << std::endl;
     }
+    SDL_SetRenderDrawColor(_renderer, 150, 150, 150, 255);
+    SDL_RenderClear(_renderer);
+    SDL_RenderPresent(_renderer);
     #ifdef DEBUG_GRAPHICS
         std::cout << "Graphics::Graphics Constructor" << std::endl;
     #endif
