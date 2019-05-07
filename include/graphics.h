@@ -8,7 +8,7 @@
 #include <string>
 #include <SDL2/SDL_image.h>
 
-#define DEBUG_GRAPHICS
+//#define DEBUG_GRAPHICS
 
 struct SDL_Window;
 struct SDL_Renderer; //Dont need to include SDL since pointers are used below.

@@ -7,7 +7,8 @@
 #include <Eigen/Dense>
 #include <list>
 
-#define DEBUG_TANK
+//#define DEBUG_TANK
+#define VERBOSE_TANK
 
 namespace tank {
 

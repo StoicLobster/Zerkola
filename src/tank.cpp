@@ -137,12 +137,21 @@ void Tank::_setPose() {
         std::cout << "Tank::_setPose()" << std::endl;
     #endif
     //Tank Body
-    Eigen::Vector2i c_body(_body_center.cast<int>().x(), -1*_body_center.cast<int>().y());
+    int body_center_x = static_cast<int>(std::round(_body_center.x()));
+    int body_center_y = static_cast<int>(std::round(_body_center.y()));
+    Eigen::Vector2i c_body(body_center_x, -1*body_center_y);
     this->setCenter(c_body);
     Eigen::Vector2d d_body(_l_body.x(), _l_body.y());
     this->setDirection(d_body);
     //Tank Turret
-    Eigen::Vector2i c_turret(_turret_center.cast<int>().x(), -1*_turret_center.cast<int>().y());
+    //Set turret position to enforce relative position of turret to center
+    Eigen::Vector3d body_to_turret(gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_X, -1*gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_Y, 0);
+    Eigen::AngleAxis<double> rot(geo::AngBetweenVecs(gc::Y_3D.cast<double>(), _l_body), _k);
+    body_to_turret = rot*body_to_turret;
+    _turret_center = _body_center + body_to_turret;
+    int turret_center_x = static_cast<int>(std::round(_turret_center.x()));
+    int turret_center_y = static_cast<int>(std::round(_turret_center.y()));
+    Eigen::Vector2i c_turret(turret_center_x, -1*turret_center_y);
     _turret.setCenter(c_turret);
     Eigen::Vector2d d_turret(_l_turret.x(), _l_turret.y());
     _turret.setDirection(d_turret);
@@ -190,11 +199,14 @@ void Tank::_move(const double dt_ms,
     else if (translate_body_cmnd == gc::LinearDirections::REVERSE) _translate_body_frc_cmnd += std::max(gc::TANK_BODY_REV_FRC_RATE_LIMIT, (gc::TANK_BODY_MAX_REV_FRC - _translate_body_frc_cmnd)/dt_s)*dt_s;
 
     //Apply rotational body motion commands
-    if (rotate_body_cmnd == gc::AngularDirections::CCW) _rotate_body_torque_cmnd += std::min(gc::TANK_BODY_ROT_TRQ_RATE_LIMIT, (gc::TANK_BODY_MAX_ROT_TRQ - _translate_body_frc_cmnd)/dt_s)*dt_s;
-    else if (rotate_body_cmnd == gc::AngularDirections::CW) _rotate_body_torque_cmnd += std::max(-1*gc::TANK_BODY_ROT_TRQ_RATE_LIMIT, (-1*gc::TANK_BODY_MAX_ROT_TRQ - _translate_body_frc_cmnd)/dt_s)*dt_s;
+    _rotate_body_torque_cmnd = 0;
+    if (rotate_body_cmnd == gc::AngularDirections::CCW) _rotate_body_torque_cmnd = gc::TANK_BODY_ROT_TRQ_CMND;
+    else if (rotate_body_cmnd == gc::AngularDirections::CW) _rotate_body_torque_cmnd = -1*gc::TANK_BODY_ROT_TRQ_CMND;
+    //if (rotate_body_cmnd == gc::AngularDirections::CCW) _rotate_body_torque_cmnd += std::min(gc::TANK_BODY_ROT_TRQ_RATE_LIMIT, (gc::TANK_BODY_MAX_ROT_TRQ - _rotate_body_torque_cmnd)/dt_s)*dt_s;
+    //else if (rotate_body_cmnd == gc::AngularDirections::CW) _rotate_body_torque_cmnd += std::max(-1*gc::TANK_BODY_ROT_TRQ_RATE_LIMIT, (-1*gc::TANK_BODY_MAX_ROT_TRQ - _rotate_body_torque_cmnd)/dt_s)*dt_s;
     //Limit torque command
-    _rotate_body_torque_cmnd = std::max( _rotate_body_torque_cmnd, -1*gc::TANK_BODY_MAX_ROT_TRQ ); //tank torque limits
-    _rotate_body_torque_cmnd = std::min( _rotate_body_torque_cmnd, gc::TANK_BODY_MAX_ROT_TRQ );
+    //_rotate_body_torque_cmnd = std::max( _rotate_body_torque_cmnd, -1*gc::TANK_BODY_MAX_ROT_TRQ ); //tank torque limits
+    //_rotate_body_torque_cmnd = std::min( _rotate_body_torque_cmnd, gc::TANK_BODY_MAX_ROT_TRQ );
 
     #ifdef DEBUG_TANK 
         std::cout << "_translate_body_frc_cmnd: " << _translate_body_frc_cmnd << std::endl;
@@ -202,7 +214,8 @@ void Tank::_move(const double dt_ms,
     #endif
 
     //Determine if slip is occurring
-    _slip = _body_lin_a.norm() > _tractive_accel_limit_mag;
+    //_slip = _body_lin_a.norm() > _tractive_accel_limit_mag;
+    _slip = false; //TODO: Calibrate slip
 
     #ifdef DEBUG_TANK 
         std::cout << "_slip: " << _slip << std::endl;
@@ -211,6 +224,9 @@ void Tank::_move(const double dt_ms,
     //Arbitrate slip dynamics
     if (!_slip) {
         /* NO SLIP */
+        #ifdef VERBOSE_TANK
+            std::cout << "No Slip!" << std::endl;
+        #endif
         _tractive_accel_limit_mag = gc::g*gc::SURF_STATIC_MU;
 
         #ifdef DEBUG_TANK 
@@ -218,7 +234,10 @@ void Tank::_move(const double dt_ms,
         #endif
 
         /*** Newton's Second Law - Moment Balance ***/
-        _body_ang_a = _rotate_body_torque_cmnd/gc::TANK_MOMENT_OF_INERTIA_Z * gc::Z_3D.cast<double>();
+        double M_RR = 0;
+        if (_body_ang_v.z() > 0) M_RR = -1*gc::RR_TRQ;
+        else if (_body_ang_v.z() < 0) M_RR = gc::RR_TRQ;
+        _body_ang_a = (_rotate_body_torque_cmnd + M_RR)/gc::TANK_MOMENT_OF_INERTIA_Z * gc::Z_3D.cast<double>();
         #ifdef DEBUG_TANK 
             std::cout << "== ANGULAR ==" << std::endl;
             std::cout << "_body_ang_a: " << _body_ang_a << std::endl;
@@ -252,23 +271,25 @@ void Tank::_move(const double dt_ms,
             std::cout << "_t_turret: " << _t_turret << std::endl;
         #endif
         /*** Newton's Second Law - Force Balance ***/
-        Eigen::Vector3d F_prop(0,0,0), F_road(0,0,0);
+        Eigen::Vector3d F_prop(0,0,0), F_road(0,0,0), F_RR(0,0,0);
         F_prop = _translate_body_frc_cmnd * _l_body; //total propulsion force
-        F_road = _body_ang_v.cross(_body_lin_v); //centripetal force applied by road (since no slip we know road can supply it)
-        _body_lin_a = 1/gc::TANK_MASS * (F_prop + F_road);
+        F_road = _body_ang_v.cross(_body_lin_v)*gc::TANK_MASS; //centripetal force applied by road (since no slip we know road can supply it)
+        if (_body_lin_v.norm() !=  0.0) F_RR = -1*gc::RR_FRC*_body_lin_v.normalized();
+        _body_lin_a = 1/gc::TANK_MASS * (F_prop + F_road + F_RR);
         #ifdef DEBUG_TANK 
             std::cout << "== LINEAR ==" << std::endl;
             std::cout << "F_prop: " << F_prop << std::endl;
             std::cout << "F_road: " << F_road << std::endl;
+            std::cout << "F_RR: " << F_RR << std::endl;
             std::cout << "_body_lin_a: " << _body_lin_a << std::endl;
+            std::cout << "_body_lin_v: " << _body_lin_v << std::endl;
         #endif
         //Integrate linear acceleration
         _integrate(dt_s, _body_lin_v, _body_lin_a_prev, _body_lin_a);
         double v_lin_mag = _body_lin_v.norm();
         v_lin_mag = std::max(v_lin_mag, gc::TANK_BODY_MIN_LONG_VEL);
         v_lin_mag = std::min(v_lin_mag, gc::TANK_BODY_MAX_LONG_VEL);
-        _body_lin_v.normalize();
-        _body_lin_v = v_lin_mag*_body_lin_v;
+        _body_lin_v = v_lin_mag*_body_lin_v.normalized();
         #ifdef DEBUG_TANK 
             std::cout << "_body_lin_v: " << _body_lin_v << std::endl;
         #endif
@@ -280,6 +301,9 @@ void Tank::_move(const double dt_ms,
         
     } else {
         /* SLIP */
+        #ifdef VERBOSE_TANK
+            std::cout << "Slip!" << std::endl;
+        #endif
         _tractive_accel_limit_mag = gc::g*gc::SURF_KINETIC_MU;
 
         #ifdef DEBUG_TANK 
@@ -304,12 +328,6 @@ void Tank::_move(const double dt_ms,
     if (_body_center.y() < gc::MIN_Y) _body_center.y() = gc::MIN_Y;
     if (_body_center.y() > gc::MAX_Y) _body_center.y() = gc::MAX_Y;
 
-    //Set Turret Position
-    Eigen::Vector3d body_to_turret(gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_X, -1*gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_Y, 0);
-    Eigen::AngleAxis<double> rot(geo::AngBetweenVecs(gc::Y_3D.cast<double>(), _l_body), _k);
-    body_to_turret = rot*body_to_turret;
-    _turret_center = _body_center + body_to_turret;
-
     /*** Rotate Tank Turret ***/
     //Check if turret rotation already exceeded    
     double alpha = geo::AngBetweenVecs(_l_body, _l_turret)*geo::RAD_TO_DEG;
@@ -318,6 +336,7 @@ void Tank::_move(const double dt_ms,
     #endif
     if ( (alpha < gc::TANK_TURRET_MAX_ANG) && (alpha > -1*gc::TANK_TURRET_MAX_ANG) ) {
         //Rotate
+        _rotate_turret_spd_cmnd = 0;
         if (rotate_turret_cmnd == gc::AngularDirections::CCW) _rotate_turret_spd_cmnd = gc::TANK_TURRET_ROT_SPD;
         else if (rotate_turret_cmnd == gc::AngularDirections::CW) _rotate_turret_spd_cmnd = -1 * gc::TANK_TURRET_ROT_SPD;
         #ifdef DEBUG_TANK 

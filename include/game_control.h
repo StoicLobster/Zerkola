@@ -53,15 +53,14 @@ const int TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_Y = 1; //add to body center
 const double TANK_RAD_COL = 30; //[m] Radius of collision for tank
 const double TANK_MASS = 1000; //[kg] Mass of tank
 const double TANK_MOMENT_OF_INERTIA_Z = 500; //[kg*m^2] Moment of inertia of tank about z axis
-const double TANK_BODY_FRWD_FRC_RATE_LIMIT = 1000; //[N/s] Force rate limit for a forward move command
-const double TANK_BODY_REV_FRC_RATE_LIMIT = -500; //[N/s] Force rate limit for a reverse move command
-const double TANK_BODY_ROT_TRQ_RATE_LIMIT = 500; //[N*m/s] Torque rate limit for a rotate command
-const double TANK_TURRET_ROT_SPD = 10; //[deg/s] Angular rotation speed of tank turret when commanded
-const double TANK_BODY_MAX_FRWD_FRC = 3000; //[N] Maximum forward force command
-const double TANK_BODY_MAX_REV_FRC = -5000; //[N] Maximum reverse force command
-const double TANK_BODY_MAX_ROT_TRQ = 1000; //[N*m] Maximum rotation torque command
-const double TANK_BODY_MAX_LONG_VEL = 10; //[m/s] Maximum longitudinal linear velocity of tank body
-const double TANK_BODY_MIN_LONG_VEL = -3; //[m/s] Minimum longitudinal linear velocity of tank body
+const double TANK_BODY_FRWD_FRC_RATE_LIMIT = 2000; //[N/s] Force rate limit for a forward move command
+const double TANK_BODY_REV_FRC_RATE_LIMIT = -5000; //[N/s] Force rate limit for a reverse move command
+const double TANK_BODY_ROT_TRQ_CMND = 2500; //[N*m] Torque for a rotate command
+const double TANK_TURRET_ROT_SPD = 30; //[deg/s] Angular rotation speed of tank turret when commanded
+const double TANK_BODY_MAX_FRWD_FRC = 6000; //[N] Maximum forward force command
+const double TANK_BODY_MAX_REV_FRC = -10000; //[N] Maximum reverse force command
+const double TANK_BODY_MAX_LONG_VEL = 30; //[m/s] Maximum longitudinal linear velocity of tank body
+const double TANK_BODY_MIN_LONG_VEL = -10; //[m/s] Minimum longitudinal linear velocity of tank body
 const double TANK_TURRET_MAX_ANG = 130; //[deg] Maximum angle (+/-) that turret can make with body direction
 // Missile Dynamics
 const double MISSLE_SPEED = 2; //default missile speed
@@ -80,10 +79,12 @@ const double MAX_X = WINDOW_WIDTH - WINDOW_MARGIN;
 const double MIN_Y = -1*WINDOW_HEIGHT + WINDOW_MARGIN;
 const double MAX_Y = -1*WINDOW_MARGIN;
 // Environment Dyncamis
-const double SURF_STATIC_MU = 0.8;
+const double SURF_STATIC_MU = 1.0;
 const double SURF_KINETIC_MU = 0.4;
 const double g = 9.81; //[m/s^2]
 const double RR_SPEED_THRESH = 0.1; //[m/s] Speed threshold for rolling resistance to come into effect
+const double RR_TRQ = 2000; //[Nm] Rolling resistance of tracks
+const double RR_FRC = 500; //[N] Rolling resistance of tracks
 
 
 typedef enum PlayerColor {
