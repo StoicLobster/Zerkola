@@ -21,8 +21,8 @@ Tank::Tank(graphics::Graphics& graphics, gc::PlayerColor player_color, input::In
         (player_color == gc::PlayerColor::RED ? gc::RED_PLAYER_START_POS_X : gc::BLUE_PLAYER_START_POS_X), 
         (player_color == gc::PlayerColor::RED ? gc::RED_PLAYER_START_POS_Y : gc::BLUE_PLAYER_START_POS_Y), 
         gc::TANK_BODY_SPRITE_UPDATE_RATE_MS,
-        -1*gc::TANK_BODY_CENTER_RELATIVE_TO_UL_X,
-        -1*gc::TANK_BODY_CENTER_RELATIVE_TO_UL_Y),
+        gc::TANK_BODY_CENTER_RELATIVE_TO_UL_X,
+        gc::TANK_BODY_CENTER_RELATIVE_TO_UL_Y),
         _color(player_color),
         _input_ptr(input_ptr),
         _turret(graphics, 
@@ -31,8 +31,8 @@ Tank::Tank(graphics::Graphics& graphics, gc::PlayerColor player_color, input::In
         player_color == gc::PlayerColor::RED ? gc::RED_TANK_TURRET_SPRITE_START_Y : gc::BLUE_TANK_TURRET_SPRITE_START_Y, 
         gc::TANK_TURRET_SPRITE_WIDTH, 
         gc::TANK_TURRET_SPRITE_HEIGHT,
-        -1*gc::TANK_TURRET_CENTER_RELATIVE_TO_TURRET_UL_X,
-        -1*gc::TANK_TURRET_CENTER_RELATIVE_TO_TURRET_UL_Y),
+        gc::TANK_TURRET_CENTER_RELATIVE_TO_TURRET_UL_X - gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_X, //Note turret center of rotation is tank body center
+        gc::TANK_TURRET_CENTER_RELATIVE_TO_TURRET_UL_Y - gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_Y),
         _l_body(gc::Y_3D.cast<double>()),
         _t_body(-1*gc::X_3D.cast<double>()),
         _l_turret(gc::Y_3D.cast<double>()),
@@ -147,6 +147,7 @@ void Tank::_setPose() {
     //Set turret position to enforce relative position of turret to center
     Eigen::Vector3d body_to_turret(gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_X, -1*gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_Y, 0);
     Eigen::AngleAxis<double> rot(geo::AngBetweenVecs(gc::Y_3D.cast<double>(), _l_body), _k);
+    //TODO: This is wrong, need to shift vector by actual center of rotation (tank body)
     body_to_turret = rot*body_to_turret;
     _turret_center = _body_center + body_to_turret;
     int turret_center_x = static_cast<int>(std::round(_turret_center.x()));
@@ -334,6 +335,7 @@ void Tank::_move(const double dt_ms,
     #ifdef DEBUG_TANK 
         std::cout << "alpha: " << alpha << std::endl;
     #endif
+    //TODO: Fix this. Need to check if new rotation would exceed limits
     if ( (alpha < gc::TANK_TURRET_MAX_ANG) && (alpha > -1*gc::TANK_TURRET_MAX_ANG) ) {
         //Rotate
         _rotate_turret_spd_cmnd = 0;

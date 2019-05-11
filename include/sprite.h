@@ -12,8 +12,8 @@ namespace sprite {
 
 class Sprite {
 private:
-Eigen::Vector2i _center; //Current center location of sprite on screen
-Eigen::Vector2i _center_to_UL; //Shift from _center to upper left of bounding box
+Eigen::Vector2i _center; //Current center location of sprite on screen. Used for center of rotation
+Eigen::Vector2i _UL_to_center; //Shift from upperl left of bounding box to _center
 Eigen::Vector2d _dir; //Current direction of sprite on screen
 
 protected:

@@ -14,7 +14,7 @@ Sprite::~Sprite() {}
 
 Sprite::Sprite(graphics::Graphics &graphics, const std::string &filePath, int sourceX, int sourceY, int width, int height, int UL_x, int UL_y):
     _center(0,0),
-    _center_to_UL(UL_x, UL_y),
+    _UL_to_center(UL_x, UL_y),
     _dir(0,0)
 {
     #ifdef DEBUG_SPRITE 
@@ -50,8 +50,8 @@ void Sprite::draw(graphics::Graphics& graphics) const {
     int UL_x, UL_y, width, height;
     width = static_cast<int>(_sourceRect.w*gc::SPRITE_SCALE);
     height = static_cast<int>(_sourceRect.h*gc::SPRITE_SCALE);
-    UL_x = _center.x() + _center_to_UL.x();
-    UL_y = _center.y() + _center_to_UL.y();
+    UL_x = _center.x() - _UL_to_center.x();
+    UL_y = _center.y() - _UL_to_center.y();
     #ifdef DEBUG_SPRITE 
         std::cout << "width: " << width << std::endl;
         std::cout << "height: " << height << std::endl;
@@ -66,7 +66,7 @@ void Sprite::draw(graphics::Graphics& graphics) const {
     #ifdef DEBUG_SPRITE 
         std::cout << "theta: " << theta << std::endl;
     #endif
-    SDL_Point center_point = {-1*_center_to_UL.x(), -1*_center_to_UL.y()};
+    SDL_Point center_point = {_UL_to_center.x(), _UL_to_center.y()};
     //Assert on window limits
     assert(_center.x() <= gc::WINDOW_WIDTH);
     assert(_center.x() >= 0);
