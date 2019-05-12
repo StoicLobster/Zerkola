@@ -45,10 +45,8 @@ const int RED_TANK_TURRET_SPRITE_START_X = 0;
 const int RED_TANK_TURRET_SPRITE_START_Y = BLUE_TANK_BODY_SPRITE_START_Y + 2*TANK_BODY_SPRITE_HEIGHT;
 const int BLUE_TANK_TURRET_SPRITE_START_X = 0;
 const int BLUE_TANK_TURRET_SPRITE_START_Y = RED_TANK_TURRET_SPRITE_START_Y + TANK_TURRET_SPRITE_HEIGHT;
-const int TANK_TURRET_CENTER_RELATIVE_TO_TURRET_UL_X = 5; //add to UL to get center
-const int TANK_TURRET_CENTER_RELATIVE_TO_TURRET_UL_Y = 18; //add to UL to get center
-const int TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_X = 0; //add to body center to get turret center
-const int TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_Y = 1; //add to body center to get turret center
+const int TANK_TURRET_CENTER_RELATIVE_TO_UL_X = 5; //add to UL to get center
+const int TANK_TURRET_CENTER_RELATIVE_TO_UL_Y = 18; //add to UL to get center
 // Tank Dynamics
 const double TANK_RAD_COL = 30; //[m] Radius of collision for tank
 const double TANK_MASS = 1000; //[kg] Mass of tank

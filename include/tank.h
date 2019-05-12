@@ -26,7 +26,7 @@ sprite::Sprite _turret; //Turret sprite object
  * Note that the vertical direction is always aligned with the global Z direction (no roll or pitch)
  */
 Eigen::Vector3d _l_body, _t_body, _l_turret, _t_turret, _k;
-Eigen::Vector3d _body_center, _turret_center; //Position of parts of the tank
+Eigen::Vector3d _center; //Tank body and turret have same center (not sure how to get around this using SDL_RenderCopyEX...)
 Eigen::Vector3d _body_lin_v, _body_lin_a, _body_ang_v, _body_ang_a; //Linear and angular velocity and acceleration of tank body
 Eigen::Vector3d _body_lin_v_prev, _body_lin_a_prev, _body_ang_v_prev, _body_ang_a_prev; //Previous linear and angular velocity and acceleration of tank body
 /* Control Commands

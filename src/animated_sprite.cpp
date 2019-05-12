@@ -12,8 +12,8 @@ namespace animated_sprite {
 AnimatedSprite::AnimatedSprite() {}
 
 AnimatedSprite::AnimatedSprite(graphics::Graphics& graphics, const std::string& filePath, int sourceX, int sourceY,
-    int width, int height, double posX, double posY, double timeToUpdate, int UL_x, int UL_y):
-    Sprite(graphics, filePath, sourceX, sourceY, width, height, UL_x, UL_y),
+    int width, int height, double timeToUpdate):
+    Sprite(graphics, filePath, sourceX, sourceY, width, height),
     _frameIdx(0),
     _timeElapsed(0.0),
     _visible(true),

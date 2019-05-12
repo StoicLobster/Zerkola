@@ -18,11 +18,7 @@ Tank::Tank(graphics::Graphics& graphics, gc::PlayerColor player_color, input::In
         player_color == gc::PlayerColor::RED ? gc::RED_TANK_BODY_SPRITE_START_Y : gc::BLUE_TANK_BODY_SPRITE_START_Y, 
         gc::TANK_BODY_SPRITE_WIDTH, 
         gc::TANK_BODY_SPRITE_HEIGHT,
-        (player_color == gc::PlayerColor::RED ? gc::RED_PLAYER_START_POS_X : gc::BLUE_PLAYER_START_POS_X), 
-        (player_color == gc::PlayerColor::RED ? gc::RED_PLAYER_START_POS_Y : gc::BLUE_PLAYER_START_POS_Y), 
-        gc::TANK_BODY_SPRITE_UPDATE_RATE_MS,
-        gc::TANK_BODY_CENTER_RELATIVE_TO_UL_X,
-        gc::TANK_BODY_CENTER_RELATIVE_TO_UL_Y),
+        gc::TANK_BODY_SPRITE_UPDATE_RATE_MS),
         _color(player_color),
         _input_ptr(input_ptr),
         _turret(graphics, 
@@ -30,9 +26,7 @@ Tank::Tank(graphics::Graphics& graphics, gc::PlayerColor player_color, input::In
         player_color == gc::PlayerColor::RED ? gc::RED_TANK_TURRET_SPRITE_START_X : gc::BLUE_TANK_TURRET_SPRITE_START_X, 
         player_color == gc::PlayerColor::RED ? gc::RED_TANK_TURRET_SPRITE_START_Y : gc::BLUE_TANK_TURRET_SPRITE_START_Y, 
         gc::TANK_TURRET_SPRITE_WIDTH, 
-        gc::TANK_TURRET_SPRITE_HEIGHT,
-        gc::TANK_TURRET_CENTER_RELATIVE_TO_TURRET_UL_X - gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_X, //Note turret center of rotation is tank body center
-        gc::TANK_TURRET_CENTER_RELATIVE_TO_TURRET_UL_Y - gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_Y),
+        gc::TANK_TURRET_SPRITE_HEIGHT),
         _l_body(gc::Y_3D.cast<double>()),
         _t_body(-1*gc::X_3D.cast<double>()),
         _l_turret(gc::Y_3D.cast<double>()),
@@ -65,12 +59,9 @@ Tank::Tank(graphics::Graphics& graphics, gc::PlayerColor player_color, input::In
         start_y = gc::BLUE_PLAYER_START_POS_Y;
     }
     //Set starting vectors and NEGATE y coordinate
-    _body_center.x() = start_x;
-    _body_center.y() = -1*start_y;
-    _body_center.z() = 0.0;
-    _turret_center.x() = static_cast<double>(start_x + gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_X);
-    _turret_center.y() = -1*static_cast<double>(start_y + gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_Y);
-    _turret_center.z() = 0.0;
+    _center.x() = start_x;
+    _center.y() = -1*start_y;
+    _center.z() = 0.0;
 
     //Setup animations
     _setupAnimations();
@@ -137,25 +128,30 @@ void Tank::_setPose() {
         std::cout << "Tank::_setPose()" << std::endl;
     #endif
     //Tank Body
-    int body_center_x = static_cast<int>(std::round(_body_center.x()));
-    int body_center_y = static_cast<int>(std::round(_body_center.y()));
-    Eigen::Vector2i c_body(body_center_x, -1*body_center_y);
-    this->setCenter(c_body);
     Eigen::Vector2d d_body(_l_body.x(), _l_body.y());
     this->setDirection(d_body);
+    Eigen::Vector2i c_body(gc::TANK_BODY_CENTER_RELATIVE_TO_UL_X, gc::TANK_BODY_CENTER_RELATIVE_TO_UL_Y);
+    this->setCOR(c_body);
+    int center_x = static_cast<int>(std::round(_center.x()));
+    int center_y = static_cast<int>(std::round(-1*_center.y()));
+    int body_UL_x = center_x - gc::TANK_BODY_CENTER_RELATIVE_TO_UL_X;    
+    int body_UL_y = center_y - gc::TANK_BODY_CENTER_RELATIVE_TO_UL_Y;
+    assert(body_UL_x >= 0);
+    assert(body_UL_y >= 0);
+    Eigen::Vector2i UL_body(body_UL_x, body_UL_y);
+    this->setUL(UL_body);
     //Tank Turret
-    //Set turret position to enforce relative position of turret to center
-    Eigen::Vector3d body_to_turret(gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_X, -1*gc::TANK_TURRET_CENTER_RELATIVE_TO_BODY_CENTER_Y, 0);
-    Eigen::AngleAxis<double> rot(geo::AngBetweenVecs(gc::Y_3D.cast<double>(), _l_body), _k);
-    //TODO: This is wrong, need to shift vector by actual center of rotation (tank body)
-    body_to_turret = rot*body_to_turret;
-    _turret_center = _body_center + body_to_turret;
-    int turret_center_x = static_cast<int>(std::round(_turret_center.x()));
-    int turret_center_y = static_cast<int>(std::round(_turret_center.y()));
-    Eigen::Vector2i c_turret(turret_center_x, -1*turret_center_y);
-    _turret.setCenter(c_turret);
     Eigen::Vector2d d_turret(_l_turret.x(), _l_turret.y());
     _turret.setDirection(d_turret);
+    int turret_UL_x = center_x - gc::TANK_TURRET_CENTER_RELATIVE_TO_UL_X;    
+    int turret_UL_y = center_y - gc::TANK_TURRET_CENTER_RELATIVE_TO_UL_Y;
+    assert(turret_UL_x >= 0);
+    assert(turret_UL_y >= 0);
+     Eigen::Vector2i UL_turret(turret_UL_x, turret_UL_y);
+    _turret.setUL(UL_turret);
+    Eigen::Vector2i c_turret(gc::TANK_TURRET_CENTER_RELATIVE_TO_UL_X, gc::TANK_TURRET_CENTER_RELATIVE_TO_UL_Y);
+    _turret.setCOR(c_turret);
+
     return;
 }
 
@@ -222,7 +218,7 @@ void Tank::_move(const double dt_ms,
         std::cout << "_slip: " << _slip << std::endl;
     #endif
 
-    //Arbitrate slip dynamics
+    //Arbitrate slip dynamics and model motion
     if (!_slip) {
         /* NO SLIP */
         #ifdef VERBOSE_TANK
@@ -295,9 +291,9 @@ void Tank::_move(const double dt_ms,
             std::cout << "_body_lin_v: " << _body_lin_v << std::endl;
         #endif
         //Integrate linear velocity
-        _integrate(dt_s, _body_center, _body_lin_v_prev, _body_lin_v);
+        _integrate(dt_s, _center, _body_lin_v_prev, _body_lin_v);
         #ifdef DEBUG_TANK 
-            std::cout << "_body_center: " << _body_center << std::endl;
+            std::cout << "_center: " << _center << std::endl;
         #endif
         
     } else {
@@ -320,14 +316,14 @@ void Tank::_move(const double dt_ms,
         //Integrate linear acceleration
         _integrate(dt_s, _body_lin_v, _body_lin_a_prev, _body_lin_a);
         //Integrate linear velocity
-        _integrate(dt_s, _body_center, _body_lin_v_prev, _body_lin_v);
+        _integrate(dt_s, _center, _body_lin_v_prev, _body_lin_v);
     }
 
     //Limit Tank Position
-    if (_body_center.x() < gc::MIN_X) _body_center.x() = gc::MIN_X;
-    if (_body_center.x() > gc::MAX_X) _body_center.x() = gc::MAX_X;
-    if (_body_center.y() < gc::MIN_Y) _body_center.y() = gc::MIN_Y;
-    if (_body_center.y() > gc::MAX_Y) _body_center.y() = gc::MAX_Y;
+    if (_center.x() < gc::MIN_X) _center.x() = gc::MIN_X;
+    if (_center.x() > gc::MAX_X) _center.x() = gc::MAX_X;
+    if (_center.y() < gc::MIN_Y) _center.y() = gc::MIN_Y;
+    if (_center.y() > gc::MAX_Y) _center.y() = gc::MAX_Y;
 
     /*** Rotate Tank Turret ***/
     //Check if turret rotation already exceeded    

@@ -12,9 +12,9 @@ namespace sprite {
 
 class Sprite {
 private:
-Eigen::Vector2i _center; //Current center location of sprite on screen. Used for center of rotation
-Eigen::Vector2i _UL_to_center; //Shift from upperl left of bounding box to _center
-Eigen::Vector2d _dir; //Current direction of sprite on screen
+Eigen::Vector2i _upper_left_corner; //Upper left corner of destination rectangle. BEFORE ROTATION
+Eigen::Vector2d _dir; //Desired direction of destination rectangle
+Eigen::Vector2i _center_of_rotation; //Center of rotation of rectangle RELATIVE TO UPPER LEFT
 
 protected:
 SDL_Rect _sourceRect; //location on sprite sheet to get sprite from
@@ -22,10 +22,11 @@ SDL_Texture* _spriteSheet; //Loaded sprite sheet
 
 public:
 Sprite();
-Sprite(graphics::Graphics &graphics, const std::string &filePath, int sourceX, int sourceY, int width, int height, int UL_x, int UL_y);
+Sprite(graphics::Graphics &graphics, const std::string &filePath, int sourceX, int sourceY, int width, int height);
 virtual ~Sprite();
-void draw(graphics::Graphics& graphics) const; //Draws sprite to graphics with _center and _dir
-inline void setCenter(const Eigen::Vector2i& center) { _center = center; };
+void draw(graphics::Graphics& graphics) const; //Draws sprite to graphics
+inline void setUL(const Eigen::Vector2i& UL) { _upper_left_corner = UL; };
+inline void setCOR(const Eigen::Vector2i& center) { _center_of_rotation = center; };
 inline void setDirection(const Eigen::Vector2d& dir) { _dir = dir; };
 };
 

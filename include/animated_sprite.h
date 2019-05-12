@@ -34,8 +34,7 @@ virtual void _setupAnimations() = 0; //Required function that sets up all animat
 
 public:
 AnimatedSprite();
-AnimatedSprite(graphics::Graphics& graphics, const std::string& filePath, int sourceX, int sourceY, int width, int height, 
-    double posX, double posY, double timeToUpdate, int UL_x, int UL_y);
+AnimatedSprite(graphics::Graphics& graphics, const std::string& filePath, int sourceX, int sourceY, int width, int height, double timeToUpdate);
 
 void playAnimation(std::string animation, bool once = false); //plays the animation if its not already playing
 void update(int elapsedTime); //updates the animated sprite timer and adjusts the sprite frame
