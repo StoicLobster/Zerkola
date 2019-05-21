@@ -60,6 +60,14 @@ const double TANK_BODY_MAX_REV_FRC = -10000; //[N] Maximum reverse force command
 const double TANK_BODY_MAX_LONG_VEL = 30; //[m/s] Maximum longitudinal linear velocity of tank body
 const double TANK_BODY_MIN_LONG_VEL = -10; //[m/s] Minimum longitudinal linear velocity of tank body
 const double TANK_TURRET_MAX_ANG = 130; //[deg] Maximum angle (+/-) that turret can make with body direction
+// Missile Sprite
+const char* const MISSILE_SPRITE_ANIMATION_FILE_PATH = "content/sprites/missile_sprites.png";
+const int MISSILE_SPRITE_UPDATE_RATE_MS = 100;
+const int MISSILE_NUMBER_SPRITE_ANIMATIONS = 3;
+const int MISSILE_SPRITE_WIDTH = 31;
+const int MISSILE_SPRITE_HEIGHT = 25;
+const int MISSILE_SPRITE_START_X = 0;
+const int MISSILE_SPRITE_START_Y = 0;
 // Missile Dynamics
 const double MISSLE_SPEED = 2; //default missile speed
 const long double MISSILE_ACTIVE_DIST = 5; //Distance missile must travel before it becomes active

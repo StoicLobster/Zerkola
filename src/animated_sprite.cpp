@@ -26,6 +26,8 @@ AnimatedSprite::AnimatedSprite(graphics::Graphics& graphics, const std::string& 
         #endif
     }
 
+AnimatedSprite::~AnimatedSprite() {}
+
 void AnimatedSprite::_addAnimation(int frames, int sprite_x0, int sprite_y0, std::string name, int width, int height, bool reverse) {
     #ifdef DEBUG_ANIMATED_SPRITE 
         std::cout << "AnimatedSprite::_addAnimation()" << std::endl;

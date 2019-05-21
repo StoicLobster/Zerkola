@@ -35,9 +35,13 @@ virtual void _setupAnimations() = 0; //Required function that sets up all animat
 public:
 AnimatedSprite();
 AnimatedSprite(graphics::Graphics& graphics, const std::string& filePath, int sourceX, int sourceY, int width, int height, double timeToUpdate);
+virtual ~AnimatedSprite();
 
 void playAnimation(std::string animation, bool once = false); //plays the animation if its not already playing
-void update(int elapsedTime); //updates the animated sprite timer and adjusts the sprite frame
+/* update
+ * updates the animated sprite timer and adjusts the sprite frame
+ */
+void update(int elapsedTime);
 void draw(graphics::Graphics& graphics); //draw sprite on screen at current position and orientation (of Sprite)
 };
 
