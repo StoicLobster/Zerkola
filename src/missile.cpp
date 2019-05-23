@@ -8,14 +8,15 @@ Missile::~Missile() {};
 Missile::Missile(graphics::Graphics& graphics, const int& id, const double& x, const double& y, const Eigen::Vector2d& tank_dir): 
 animated_sprite::AnimatedSprite(
     graphics, 
-    gc::MISSILE_SPRITE_ANIMATION_FILE_PATH, 
+    gc::SPRITE_ANIMATION_FILE_PATH, 
     gc::MISSILE_SPRITE_START_X, 
     gc::MISSILE_SPRITE_START_Y, 
     gc::MISSILE_SPRITE_WIDTH, 
     gc::MISSILE_SPRITE_HEIGHT,
     gc::MISSILE_SPRITE_UPDATE_RATE_MS),
 _ID(id),
-_travel_dist(0.0)
+_travel_dist(0.0),
+_collision_active(false)
 {
     //Align missile with tank
     _rotate_align(tank_dir);
@@ -44,30 +45,6 @@ void Missile::_rotate_align(const Eigen::Vector2d& dir_align) {
 
 void Missile::Move() {
     if (_travel_dist >= gc::MISSILE_ACTIVE_DIST) _collision_active = true;
-    //Define boundary with vectors
-    std::list<std::pair<Eigen::Vector2d,Eigen::Vector2d>> boundaries;
-    // <B0 , Bm>
-    Eigen::Vector2d B0, Bm;
-    B0(0) = 0;
-    B0(1) = gc::NORTH_LIMIT;
-    Bm(0) = 1;
-    Bm(1) = 0;
-    boundaries.push_back(std::make_pair(B0,Bm));
-    B0(0) = gc::EAST_LIMIT;
-    B0(1) = 0;
-    Bm(0) = 0;
-    Bm(1) = 1;
-    boundaries.push_back(std::make_pair(B0,Bm));
-    B0(0) = 0;
-    B0(1) = gc::SOUTH_LIMIT;
-    Bm(0) = 1;
-    Bm(1) = 0;
-    boundaries.push_back(std::make_pair(B0,Bm));
-    B0(0) = gc::WEST_LIMIT;
-    B0(1) = 0;
-    Bm(0) = 0;
-    Bm(1) = 1;
-    boundaries.push_back(std::make_pair(B0,Bm));
     //Determine closest intersection point
     double intersect_dist = sqrt( pow((gc::NORTH_LIMIT-gc::SOUTH_LIMIT),2) + pow((gc::EAST_LIMIT-gc::WEST_LIMIT),2) );
     Eigen::Vector2d intersect_pt;

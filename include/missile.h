@@ -19,6 +19,7 @@ const unsigned int _ID; //unique ID for missile
 Eigen::Vector2d _center; //Center of missile
 Eigen::Vector2d _dir; //Direction of missile
 long double _travel_dist; //cumulative distance travelled by missile
+bool _collision_active;
 //methods
 void _translate(const double& dist); //Translates object in the current direction by given distance
 void _rotate_align(const Eigen::Vector2d& dir_align); //rotates the missile to align with the given direction

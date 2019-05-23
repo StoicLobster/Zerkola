@@ -13,7 +13,7 @@ Tank::~Tank() {};
 Tank::Tank(graphics::Graphics& graphics, gc::PlayerColor player_color, input::Input* input_ptr): 
 animated_sprite::AnimatedSprite(
     graphics, 
-    gc::TANK_SPRITE_ANIMATION_FILE_PATH, 
+    gc::SPRITE_ANIMATION_FILE_PATH, 
     player_color == gc::PlayerColor::RED ? gc::RED_TANK_BODY_SPRITE_START_X : gc::BLUE_TANK_BODY_SPRITE_START_X, 
     player_color == gc::PlayerColor::RED ? gc::RED_TANK_BODY_SPRITE_START_Y : gc::BLUE_TANK_BODY_SPRITE_START_Y, 
     gc::TANK_BODY_SPRITE_WIDTH, 
@@ -22,7 +22,7 @@ animated_sprite::AnimatedSprite(
     _color(player_color),
     _input_ptr(input_ptr),
     _turret(graphics, 
-    gc::TANK_SPRITE_ANIMATION_FILE_PATH, 
+    gc::SPRITE_ANIMATION_FILE_PATH, 
     player_color == gc::PlayerColor::RED ? gc::RED_TANK_TURRET_SPRITE_START_X : gc::BLUE_TANK_TURRET_SPRITE_START_X, 
     player_color == gc::PlayerColor::RED ? gc::RED_TANK_TURRET_SPRITE_START_Y : gc::BLUE_TANK_TURRET_SPRITE_START_Y, 
     gc::TANK_TURRET_SPRITE_WIDTH, 
