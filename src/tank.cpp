@@ -320,10 +320,10 @@ void Tank::_move(const double dt_ms,
     }
 
     //Limit Tank Position
-    if (_center.x() < gc::MIN_X) _center.x() = gc::MIN_X;
-    if (_center.x() > gc::MAX_X) _center.x() = gc::MAX_X;
-    if (_center.y() < gc::MIN_Y) _center.y() = gc::MIN_Y;
-    if (_center.y() > gc::MAX_Y) _center.y() = gc::MAX_Y;
+    if (_center.x() < gc::BOARD_MIN_X) _center.x() = gc::BOARD_MIN_X;
+    if (_center.x() > gc::BOARD_MAX_X) _center.x() = gc::BOARD_MAX_X;
+    if (_center.y() < gc::BOARD_MIN_Y) _center.y() = gc::BOARD_MIN_Y;
+    if (_center.y() > gc::BOARD_MAX_Y) _center.y() = gc::BOARD_MAX_Y;
 
     /*** Rotate Tank Turret ***/
     //Check if turret rotation already exceeded    

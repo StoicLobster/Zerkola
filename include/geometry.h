@@ -16,6 +16,7 @@ inline double CrossProduct2D(const Eigen::Vector2d& v1, const Eigen::Vector2d& v
  */
 double AngBetweenVecs(const Eigen::Vector2d& v1, const Eigen::Vector2d& v2, gc::AngularDirections dir=gc::AngularDirections::CCW);
 double AngBetweenVecs(const Eigen::Vector3d& v1, const Eigen::Vector3d& v2, gc::AngularDirections dir=gc::AngularDirections::CCW);
+bool VectorIntersection(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am, const Eigen::Vector2d& B0, const Eigen::Vector2d& Bm, double& lambda, Eigen::Vector2d& I);
 
 }
 

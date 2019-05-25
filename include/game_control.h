@@ -17,6 +17,11 @@ const int RED_PLAYER_START_POS_Y = 240;
 const int BLUE_PLAYER_START_POS_X = 440;
 const int BLUE_PLAYER_START_POS_Y = 240;
 const int MAX_MISSILES_PER_PLAYER = 10;
+// Window
+const int WINDOW_WIDTH = 640;
+const int WINDOW_HEIGHT = 480;
+const int WINDOW_SCREEN_LOCATION_X = 400;
+const int WINDOW_SCREEN_LOCATION_Y = 300;
 // Coordinate Systems
 // Note these are used for physics. All physics must occur in quadrant 4 (x >= 0 && y <= 0)
 const Eigen::Vector2i X_2D(1,0); //Global X unit vector
@@ -24,23 +29,23 @@ const Eigen::Vector2i Y_2D(0,1); //Global Y unit vector
 const Eigen::Vector3i X_3D(1,0,0); //Global X unit vector
 const Eigen::Vector3i Y_3D(0,1,0); //Global Y unit vector
 const Eigen::Vector3i Z_3D(0,0,1); //Global Z unit vector
-// Board Size
-const double WINDOW_MARGIN = 50;
-const double MIN_X = WINDOW_MARGIN;
-const double MAX_X = WINDOW_WIDTH - WINDOW_MARGIN;
-const double MIN_Y = -1*WINDOW_HEIGHT + WINDOW_MARGIN;
-const double MAX_Y = -1*WINDOW_MARGIN;
+// Board Size (physics)
+const int WINDOW_MARGIN = 50;
+const int BOARD_MIN_X = WINDOW_MARGIN;
+const int BOARD_MAX_X = WINDOW_WIDTH - WINDOW_MARGIN;
+const int BOARD_MIN_Y = -1*WINDOW_HEIGHT + WINDOW_MARGIN;
+const int BOARD_MAX_Y = -1*WINDOW_MARGIN;
 // Store as vector list
 // <B0 , Bm>
-const Eigen::Vector2d B0_UL(MIN_X,MAX_Y);
-const Eigen::Vector2d B0_LL(MAX_X,MIN_Y);
-const std::list<const std::pair<const Eigen::Vector2d, const Eigen::Vector2d>> boundaries;
+const Eigen::Vector2i BOARD_UL(BOARD_MIN_X, BOARD_MAX_Y);
+const Eigen::Vector2i BOARD_LL(BOARD_MAX_X, BOARD_MIN_Y);
+const std::list<std::pair<Eigen::Vector2i, Eigen::Vector2i>> BOARD_BOUNDARIES = {
+	{BOARD_UL, X_2D}, //UL East
+	{BOARD_UL, Y_2D}, //UL North	
+	{BOARD_LL, X_2D}, //LL East
+	{BOARD_LL, Y_2D} //LL North	
+};
 
-// Window
-const int WINDOW_WIDTH = 640;
-const int WINDOW_HEIGHT = 480;
-const int WINDOW_SCREEN_LOCATION_X = 400;
-const int WINDOW_SCREEN_LOCATION_Y = 300;
 // Tank Sprites (Image Coordinate System)
 const double SPRITE_SCALE = 1.0;
 const char* const SPRITE_ANIMATION_FILE_PATH = "content/sprites/sprites.png";

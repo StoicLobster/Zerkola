@@ -65,7 +65,7 @@ void _move(const double dt_ms,
  * Virtual function.
  * Takes turn. Default is for human player with keyboard inputs
  */
-virtual void _turn(const double dt_ms);
+virtual void _turn(const double dt_ms); //TODO: Make this pure virtual and make Human class for actual player
 /* Integration (Trapezoidal)
  * Solves for state x k+1 (x_kp1)
  * x_k+1 = x_k + dt*(x_dot_k + x_dot_k+1)/2

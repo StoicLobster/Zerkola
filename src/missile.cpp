@@ -45,22 +45,16 @@ void Missile::_rotate_align(const Eigen::Vector2d& dir_align) {
 
 void Missile::Move() {
     if (_travel_dist >= gc::MISSILE_ACTIVE_DIST) _collision_active = true;
-    //Determine closest intersection point
-    double intersect_dist = sqrt( pow((gc::NORTH_LIMIT-gc::SOUTH_LIMIT),2) + pow((gc::EAST_LIMIT-gc::WEST_LIMIT),2) );
+    //Determine closest intersection point (init with max)
+    double intersect_dist = sqrt( pow((gc::BOARD_MAX_Y-gc::BOARD_MIN_Y),2) + pow((gc::BOARD_MAX_X-gc::BOARD_MIN_X),2) );
     Eigen::Vector2d intersect_pt;
-    //printw("==START==\n");
-    for (auto& bdry : boundaries) {
-        //printw("==BDRY==\n");
-        Eigen::Vector2d I;
+    for (const auto& bdry : gc::BOARD_BOUNDARIES) {
+        Eigen::Vector2d I, B0, Bm;
+        B0 = bdry.first.cast<double>();
+        Bm = bdry.second.cast<double>();
         double lambda;
-        if (geometry::VectorIntersection(_center,_dir,bdry.first,bdry.second,lambda,I)) {
+        if (geo::VectorIntersection(_center,_dir,B0,Bm,lambda,I)) {
             //non-parallel
-            //printw("CG point: ( %f , %f )\n", CG_(0), CG_(1));
-            //printw("I point: ( %f , %f )\n", I(0), I(1));
-            //printw("lambda: %f\n", lambda);
-            //Eigen::Vector2d tmp = I - CG_;
-            //double tmp_dist = tmp.norm();
-            //printw("tmp_dist: %f\n", tmp_dist);
             if ((lambda > 0) && (lambda < intersect_dist)) {
                 intersect_dist = lambda;
                 intersect_pt = I;
@@ -70,38 +64,44 @@ void Missile::Move() {
     #ifdef DEBUG_RICOCHET
         printw("ID: %i, Center Point: (%f,%f), Direction (%f,%f), Intersect Distance: %f, Intersect Point: (%f,%f)\n", _ID, _center.x(), _center.y(), _dir.x(), _dir.y(), intersect_dist, intersect_pt.x(), intersect_pt.y());
     #endif
-    //printw("==END==\n");
     //Determine if missile is colliding with boundary
-    //printw("Intersect Distance: %f\n", intersect_dist);
-    //printw("CG point: ( %f , %f )\n", CG_(0), CG_(1));
-    //printw("Intersect point: ( %f , %f )\n", intersect_pt(0), intersect_pt(1));
     //Check if missile would begin colliding by end of this turn
-    if ((intersect_dist - _long_move_speed) <= _rad_collision) {
+    if ((intersect_dist - gc::MISSLE_SPEED) <= gc::MISSILE_RAD_COL) {
         //translate missile to intersection point
         _translate(intersect_dist);
-        #ifdef DEBUG_RICOCHET
-            printw("Ricochet\n");
-            printw("Post ric. translate center: (%f,%f)\n", _center.x(), _center.y());
-        #endif
-        //printw("CG point: ( %f , %f )\n", CG_(0), CG_(1));
+        //Enforce that missile is exactly on boundary to remove any floating point error
         //Determine ricochet direction
         Eigen::Vector2d ricochet_dir = _dir;
-        if ( (intersect_pt(0) <= gc::WEST_LIMIT) && (_dir(0) < 0) ) ricochet_dir(0) *= -1;
-        if ( (intersect_pt(0) >= gc::EAST_LIMIT) && (_dir(0) > 0) ) ricochet_dir(0) *= -1;
-        if ( (intersect_pt(1) <= gc::SOUTH_LIMIT) && (_dir(1) < 0) ) ricochet_dir(1) *= -1;
-        if ( (intersect_pt(1) >= gc::NORTH_LIMIT) && (_dir(1) > 0) ) ricochet_dir(1) *= -1;
+        if (_center.x() < gc::BOARD_MIN_X) {
+            _center.x() = gc::BOARD_MIN_X;
+            ricochet_dir(0) *= -1;
+        }
+        if (_center.x() > gc::BOARD_MAX_X) {
+            _center.x() = gc::BOARD_MAX_X;
+            ricochet_dir(0) *= -1;
+        }
+        if (_center.y() < gc::BOARD_MIN_Y) {
+            _center.x() = gc::BOARD_MIN_Y;
+            ricochet_dir(1) *= -1;
+        }
+        if (_center.y() > gc::BOARD_MAX_Y) {
+            _center.x() = gc::BOARD_MAX_Y;
+            ricochet_dir(1) *= -1;
+        }
         //Rotate missile to richochet direction
         _rotate_align(ricochet_dir);
         #ifdef DEBUG_RICOCHET
-            printw("Post ric. rotate dir: (%f,%f)\n", _dir.x(), _dir.y());
+            printw("Ricochet\n");
         #endif
-        return;
-    }
-    //Move
-    _translate(_long_move_speed);	
+    } else {
+         //Move
+        _translate(gc::MISSLE_SPEED);	
+    }  
+
     #ifdef DEBUG_RICOCHET
         printw("Final pos and dir: (%f,%f) (%f,%f)\n", _center.x(), _center.y(), _dir.x(), _dir.y());
     #endif	
+
     return;
 }
 //Missile
