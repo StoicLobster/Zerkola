@@ -10,7 +10,7 @@ Tank::Tank() {};
 
 Tank::~Tank() {};
 
-Tank::Tank(graphics::Graphics& graphics, gc::PlayerColor player_color, input::Input* input_ptr): 
+Tank::Tank(graphics::Graphics& graphics, gc::PlayerColor player_color, std::list<missile::Missile*>* missiles_ptr, input::Input* input_ptr): 
 animated_sprite::AnimatedSprite(
     graphics, 
     gc::SPRITE_ANIMATION_FILE_PATH, 
@@ -21,6 +21,8 @@ animated_sprite::AnimatedSprite(
     gc::TANK_BODY_SPRITE_UPDATE_RATE_MS),
     _color(player_color),
     _input_ptr(input_ptr),
+    _graphics_ptr(&graphics),
+    _missiles_ptr(missiles_ptr),
     _turret(graphics, 
     gc::SPRITE_ANIMATION_FILE_PATH, 
     player_color == gc::PlayerColor::RED ? gc::RED_TANK_TURRET_SPRITE_START_X : gc::BLUE_TANK_TURRET_SPRITE_START_X, 
@@ -45,7 +47,7 @@ _translate_body_frc_cmnd(0.0),
 _rotate_turret_spd_cmnd(0.0),
 _tractive_accel_limit_mag(0.0),
 _slip(false),
-_num_missiles(gc::MAX_MISSILES_PER_PLAYER),
+_ammo(gc::MAX_MISSILES_PER_PLAYER),
 _fire_this_turn(false),
 _move_this_turn(false)
 {
@@ -98,7 +100,7 @@ void Tank::_turn(const double dt_ms) {
     //Parse input and execute move / fire
     if (_input_ptr->wasKeyPressed(SDL_SCANCODE_SPACE) || _input_ptr->isKeyHeld(SDL_SCANCODE_SPACE)) {
         //Fire a Missile
-        //_fire(); //TODO Pass in missile list from Zerkola
+        _fire(_missiles_ptr);
     }
     if (_input_ptr->wasKeyPressed(SDL_SCANCODE_UP) || _input_ptr->isKeyHeld(SDL_SCANCODE_UP)) {
         translate_body_cmnd = gc::LinearDirections::FORWARD;
@@ -362,21 +364,23 @@ void Tank::_move(const double dt_ms,
     return;
 }
 
-// void Tank::_fire(std::list<missile::Missile*>& missiles) {
-//     if (_fire_this_turn) return;
-//     _fire_this_turn = true;
-//     if (_num_missiles <= 0) return;
-//     missile::Missile* missile_ptr = new missile::Missile(num_missiles, _turrent_center.x(), _turrent_center.y(), _l_turret);
-//     missiles.push_back(missile_ptr);
-//     --_num_missiles;
-//     return;
-// }
+void Tank::_fire(std::list<missile::Missile*>* missiles) {
+    if (_fire_this_turn) return;
+    _fire_this_turn = true;
+    if (_ammo <= 0) return;
+    short new_ID = gc::MAX_MISSILES_PER_PLAYER - _ammo;
+    Eigen::Vector2d tank_dir(_l_turret.x(),_l_turret.y());
+    missile::Missile* missile_ptr = new missile::Missile(*_graphics_ptr, new_ID, _center.x(), _center.y(), tank_dir); //TODO: spawn missile at tip of turret
+    missiles->push_back(missile_ptr);
+    --_ammo;
+    return;
+}
 
-void Tank::drawTank(graphics::Graphics& graphics) {
+void Tank::drawTank() {
     //Draw body
-    animated_sprite::AnimatedSprite::draw(graphics);
+    animated_sprite::AnimatedSprite::draw(*_graphics_ptr);
     //Draw turret
-    _turret.draw(graphics);
+    _turret.draw(*_graphics_ptr);
     return;
 }
 

@@ -1,6 +1,7 @@
 #include <missile.h>
 
 namespace missile {
+
 Missile::Missile(): _ID(0) {};
 
 Missile::~Missile() {};
@@ -20,8 +21,19 @@ _collision_active(false)
 {
     //Align missile with tank
     _rotate_align(tank_dir);
+    //Setup animations
+    _setupAnimations();
     return;
 };
+
+void Missile::_animationDone(std::string currentAnimation) {}; //TODO?
+
+void Missile::_setupAnimations() {
+    _addAnimation(gc::MISSILE_NUMBER_SPRITE_ANIMATIONS, gc::MISSILE_SPRITE_START_X, gc::MISSILE_SPRITE_START_Y, 
+        "Move", gc::MISSILE_SPRITE_WIDTH, gc::MISSILE_SPRITE_HEIGHT, false);
+    //TODO add explosion animations
+    return;
+}
 
 void Missile::_translate(const double& dist) {
     //Confirm that dir_ is normalized

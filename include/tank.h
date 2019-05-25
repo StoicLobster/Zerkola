@@ -1,11 +1,13 @@
 #ifndef ZERKOLA_INCLUDE_TANK_H_
 #define ZERKOLA_INCLUDE_TANK_H_
-
+//Includes
 #include <animated_sprite.h>
 #include <input.h>
+#include <graphics.h>
 #include <game_control.h>
 #include <Eigen/Dense>
 #include <list>
+#include <missile.h>
 
 //#define DEBUG_TANK
 #define VERBOSE_TANK
@@ -13,9 +15,12 @@
 namespace tank {
 
 class Tank : public animated_sprite::AnimatedSprite {
+
 private:
 gc::PlayerColor _color;
 input::Input* _input_ptr; //Inputs used for human players
+graphics::Graphics* _graphics_ptr; //Graphics used to pass down to missiles
+std::list<missile::Missile*>* _missiles_ptr; //Pointer to missile list used in Zerkola
 sprite::Sprite _turret; //Turret sprite object
 /* Boody Fixed Unit Vectors
  * _l_body is always aligned with the tank body longitudinal direction
@@ -38,7 +43,7 @@ Eigen::Vector3d _body_lin_v_prev, _body_lin_a_prev, _body_ang_v_prev, _body_ang_
 double _rotate_body_torque_cmnd, _translate_body_frc_cmnd, _rotate_turret_spd_cmnd;
 double _tractive_accel_limit_mag; //Magnitude of tractive acceleration limit of tank tracks with ground
 bool _slip; //Indicates if tank is currently slipping
-short _num_missiles; //number of missiles remaining to fire
+short _ammo; //number of missiles remaining to fire
 bool _fire_this_turn, _move_this_turn; //controls if each of these actions was taken this turn
 
 /* Virtual Functions
@@ -60,7 +65,7 @@ void _move(const double dt_ms,
     const gc::LinearDirections translate_body_cmnd, 
     const gc::AngularDirections rotate_body_cmnd,
     const gc::AngularDirections rotate_turret_cmnd); //moves the tank with the provided commands
-//void _fire(std::list<missile::Missile*>& missiles); //Fires a missile (if able) and apends it to the list
+void _fire(std::list<missile::Missile*>* missiles); //Fires a missile (if able) and apends it to the list
 /* _turn
  * Virtual function.
  * Takes turn. Default is for human player with keyboard inputs
@@ -74,10 +79,10 @@ virtual void _turn(const double dt_ms); //TODO: Make this pure virtual and make 
 public:
 Tank();
 virtual ~Tank();
-Tank(graphics::Graphics& graphics, gc::PlayerColor player_color, input::Input* input_ptr = nullptr);
+Tank(graphics::Graphics& graphics, gc::PlayerColor player_color, std::list<missile::Missile*>* missiles_ptr, input::Input* input_ptr = nullptr);
 
 void updateTank(const double dt_ms); //Takes tank turn and does housekeeping
-void drawTank(graphics::Graphics& graphics); //Draws all parts of the tank
+void drawTank(); //Draws all parts of the tank
 
 };
 

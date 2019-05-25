@@ -2,7 +2,9 @@
 #define ZERKOLA_INCLUDE_ZERKOLA_H_
 
 #include <tank.h>
+#include <missile.h>
 #include <graphics.h>
+#include <list>
 #include <r2d2.h>
 
 //#define DEBUG_ZERKOLA
@@ -16,6 +18,7 @@ private:
     SDL_Event _event; //Events that occur will be stored here by SDL    
     tank::Tank* _tank_red; //red tank
     tank::Tank* _tank_blue; //blue tank
+    std::list<missile::Missile*> _missiles; //Missiles active in the game
     double _elapsedTime; //Elapsed time this frame
 
     void loop(); //core loop. Runs every frame.

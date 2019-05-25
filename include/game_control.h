@@ -16,7 +16,7 @@ const int RED_PLAYER_START_POS_X = 200;
 const int RED_PLAYER_START_POS_Y = 240;
 const int BLUE_PLAYER_START_POS_X = 440;
 const int BLUE_PLAYER_START_POS_Y = 240;
-const int MAX_MISSILES_PER_PLAYER = 10;
+const short MAX_MISSILES_PER_PLAYER = 10;
 // Window
 const int WINDOW_WIDTH = 640;
 const int WINDOW_HEIGHT = 480;
