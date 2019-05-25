@@ -18,8 +18,8 @@ class Tank : public animated_sprite::AnimatedSprite {
 
 private:
 gc::PlayerColor _color;
+graphics::Graphics* _graphics_ptr;
 input::Input* _input_ptr; //Inputs used for human players
-graphics::Graphics* _graphics_ptr; //Graphics used to pass down to missiles
 std::list<missile::Missile*>* _missiles_ptr; //Pointer to missile list used in Zerkola
 sprite::Sprite _turret; //Turret sprite object
 /* Boody Fixed Unit Vectors
@@ -79,7 +79,7 @@ virtual void _turn(const double dt_ms); //TODO: Make this pure virtual and make 
 public:
 Tank();
 virtual ~Tank();
-Tank(graphics::Graphics& graphics, gc::PlayerColor player_color, std::list<missile::Missile*>* missiles_ptr, input::Input* input_ptr = nullptr);
+Tank(graphics::Graphics* graphics_ptr, gc::PlayerColor player_color, std::list<missile::Missile*>* missiles_ptr, input::Input* input_ptr = nullptr);
 
 void updateTank(const double dt_ms); //Takes tank turn and does housekeeping
 void drawTank(); //Draws all parts of the tank

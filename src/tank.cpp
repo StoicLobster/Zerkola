@@ -10,9 +10,9 @@ Tank::Tank() {};
 
 Tank::~Tank() {};
 
-Tank::Tank(graphics::Graphics& graphics, gc::PlayerColor player_color, std::list<missile::Missile*>* missiles_ptr, input::Input* input_ptr): 
+Tank::Tank(graphics::Graphics* graphics_ptr, gc::PlayerColor player_color, std::list<missile::Missile*>* missiles_ptr, input::Input* input_ptr): 
 animated_sprite::AnimatedSprite(
-    graphics, 
+    graphics_ptr, 
     gc::SPRITE_ANIMATION_FILE_PATH, 
     player_color == gc::PlayerColor::RED ? gc::RED_TANK_BODY_SPRITE_START_X : gc::BLUE_TANK_BODY_SPRITE_START_X, 
     player_color == gc::PlayerColor::RED ? gc::RED_TANK_BODY_SPRITE_START_Y : gc::BLUE_TANK_BODY_SPRITE_START_Y, 
@@ -20,10 +20,10 @@ animated_sprite::AnimatedSprite(
     gc::TANK_BODY_SPRITE_HEIGHT,
     gc::TANK_BODY_SPRITE_UPDATE_RATE_MS),
     _color(player_color),
+    _graphics_ptr(graphics_ptr),
     _input_ptr(input_ptr),
-    _graphics_ptr(&graphics),
     _missiles_ptr(missiles_ptr),
-    _turret(graphics, 
+    _turret(graphics_ptr, 
     gc::SPRITE_ANIMATION_FILE_PATH, 
     player_color == gc::PlayerColor::RED ? gc::RED_TANK_TURRET_SPRITE_START_X : gc::BLUE_TANK_TURRET_SPRITE_START_X, 
     player_color == gc::PlayerColor::RED ? gc::RED_TANK_TURRET_SPRITE_START_Y : gc::BLUE_TANK_TURRET_SPRITE_START_Y, 
@@ -370,7 +370,7 @@ void Tank::_fire(std::list<missile::Missile*>* missiles) {
     if (_ammo <= 0) return;
     short new_ID = gc::MAX_MISSILES_PER_PLAYER - _ammo;
     Eigen::Vector2d tank_dir(_l_turret.x(),_l_turret.y());
-    missile::Missile* missile_ptr = new missile::Missile(*_graphics_ptr, new_ID, _center.x(), _center.y(), tank_dir); //TODO: spawn missile at tip of turret
+    missile::Missile* missile_ptr = new missile::Missile(_graphics_ptr, new_ID, _center.x(), _center.y(), tank_dir); //TODO: spawn missile at tip of turret
     missiles->push_back(missile_ptr);
     --_ammo;
     return;
@@ -378,9 +378,9 @@ void Tank::_fire(std::list<missile::Missile*>* missiles) {
 
 void Tank::drawTank() {
     //Draw body
-    animated_sprite::AnimatedSprite::draw(*_graphics_ptr);
+    animated_sprite::AnimatedSprite::draw();
     //Draw turret
-    _turret.draw(*_graphics_ptr);
+    _turret.draw();
     return;
 }
 

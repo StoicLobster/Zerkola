@@ -13,7 +13,7 @@ private:
 public:
 R2D2();
 ~R2D2();
-R2D2(graphics::Graphics& graphics, gc::PlayerColor player_color, std::list<missile::Missile*>* missiles_ptr);
+R2D2(graphics::Graphics* graphics_ptr, gc::PlayerColor player_color, std::list<missile::Missile*>* missiles_ptr);
 
 void _turn(const double dt_ms);
 

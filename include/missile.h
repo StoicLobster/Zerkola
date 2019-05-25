@@ -33,7 +33,7 @@ void _setupAnimations();
 public:
 //constructors
 Missile();
-Missile(graphics::Graphics& graphics, const int& id, const double& x, const double& y, const Eigen::Vector2d& tank_dir);
+Missile(graphics::Graphics* graphics_ptr, const int& id, const double& x, const double& y, const Eigen::Vector2d& tank_dir);
 virtual ~Missile();
 //methods
 void Move(); //Moves missile. If missile would collide with boundary, instead will calculate ricochet.

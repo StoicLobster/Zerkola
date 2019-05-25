@@ -12,7 +12,8 @@ Sprite::Sprite() {}; //TODO
 
 Sprite::~Sprite() {}
 
-Sprite::Sprite(graphics::Graphics &graphics, const std::string &filePath, int sourceX, int sourceY, int width, int height):
+Sprite::Sprite(graphics::Graphics* graphics_ptr, const std::string &filePath, int sourceX, int sourceY, int width, int height):
+    _graphics_ptr(graphics_ptr),
     _upper_left_corner(0,0),
     _dir(0,0),
     _center_of_rotation(0,0)    
@@ -31,13 +32,13 @@ Sprite::Sprite(graphics::Graphics &graphics, const std::string &filePath, int so
         std::cout << "_sourceRect.h: " << _sourceRect.h << std::endl;
     #endif
 
-    _spriteSheet = SDL_CreateTextureFromSurface(graphics.getRenderer(), graphics.loadImage(filePath));
+    _spriteSheet = SDL_CreateTextureFromSurface(graphics_ptr->getRenderer(), graphics_ptr->loadImage(filePath));
     if (_spriteSheet == NULL) {
         std::cout << std::endl << "Error: Unable to load image" << std::endl;
     }
 }
 
-void Sprite::draw(graphics::Graphics& graphics) const {
+void Sprite::draw() const {
     #ifdef DEBUG_SPRITE 
         std::cout << "Sprite::draw()" << std::endl;
         std::cout << "_upper_left_corner.x(): " << _upper_left_corner.x() << std::endl;
@@ -75,7 +76,7 @@ void Sprite::draw(graphics::Graphics& graphics) const {
     #endif
     SDL_Point center_point = {_center_of_rotation.x(), _center_of_rotation.y()};
     //Render
-    graphics.renderCopy(_spriteSheet, &_sourceRect, &destinationRectangle, theta, &center_point);
+    _graphics_ptr->renderCopy(_spriteSheet, &_sourceRect, &destinationRectangle, theta, &center_point);
     return;
 }
 

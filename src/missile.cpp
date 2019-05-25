@@ -6,9 +6,9 @@ Missile::Missile(): _ID(0) {};
 
 Missile::~Missile() {};
 
-Missile::Missile(graphics::Graphics& graphics, const int& id, const double& x, const double& y, const Eigen::Vector2d& tank_dir): 
+Missile::Missile(graphics::Graphics* graphics_ptr, const int& id, const double& x, const double& y, const Eigen::Vector2d& tank_dir): 
 animated_sprite::AnimatedSprite(
-    graphics, 
+    graphics_ptr, 
     gc::SPRITE_ANIMATION_FILE_PATH, 
     gc::MISSILE_SPRITE_START_X, 
     gc::MISSILE_SPRITE_START_Y, 
@@ -21,8 +21,9 @@ _collision_active(false)
 {
     //Align missile with tank
     _rotate_align(tank_dir);
-    //Setup animations
+    //Setup and play animations
     _setupAnimations();
+    playAnimation("Move");
     return;
 };
 

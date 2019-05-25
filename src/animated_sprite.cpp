@@ -11,9 +11,9 @@ namespace animated_sprite {
 
 AnimatedSprite::AnimatedSprite() {}
 
-AnimatedSprite::AnimatedSprite(graphics::Graphics& graphics, const std::string& filePath, int sourceX, int sourceY,
+AnimatedSprite::AnimatedSprite(graphics::Graphics* graphics_ptr, const std::string& filePath, int sourceX, int sourceY,
     int width, int height, double timeToUpdate):
-    Sprite(graphics, filePath, sourceX, sourceY, width, height),
+    Sprite(graphics_ptr, filePath, sourceX, sourceY, width, height),
     _frameIdx(0),
     _timeElapsed(0.0),
     _visible(true),
@@ -94,7 +94,7 @@ void AnimatedSprite::update(int elapsedTime) {
     return;
 }
 
-void AnimatedSprite::draw(graphics::Graphics& graphics) {
+void AnimatedSprite::draw() {
     #ifdef DEBUG_ANIMATED_SPRITE 
         std::cout << "AnimatedSprite::draw()" << std::endl;
     #endif
@@ -102,7 +102,7 @@ void AnimatedSprite::draw(graphics::Graphics& graphics) {
         //Set current _sourceRect
         _sourceRect = _animations[_currentAnimation][_frameIdx];
         //Draw
-        sprite::Sprite::draw(graphics);
+        sprite::Sprite::draw();
     }
     return;
 }

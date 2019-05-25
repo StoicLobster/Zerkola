@@ -23,8 +23,8 @@ Zerkola::~Zerkola() {}
 
 void Zerkola::loop() {         
     //Instantiate players
-    _tank_blue = new tank::Tank(_graphics, gc::PlayerColor::BLUE, &_missiles, &_input); //Always human player
-    _tank_red = new r2d2::R2D2(_graphics, gc::PlayerColor::RED, &_missiles); //Always AI
+    _tank_blue = new tank::Tank(&_graphics, gc::PlayerColor::BLUE, &_missiles, &_input); //Always human player
+    _tank_red = new r2d2::R2D2(&_graphics, gc::PlayerColor::RED, &_missiles); //Always AI
 
     int last_update_time_ms = SDL_GetTicks(); //[ms] time since SDL_Init was called
     //Start game loop
@@ -82,8 +82,8 @@ void Zerkola::draw() {
     }
 
     //Draw Tanks
-    _tank_blue->drawTank(_graphics);
-    _tank_red->drawTank(_graphics);
+    _tank_blue->drawTank();
+    _tank_red->drawTank();
 
     _graphics.flip();
     return;    
