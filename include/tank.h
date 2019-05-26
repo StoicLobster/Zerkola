@@ -9,8 +9,8 @@
 #include <list>
 #include <missile.h>
 
-//#define DEBUG_TANK
-#define DEBUG_TANK_FIRE
+#define DEBUG_TANK
+//#define DEBUG_TANK_FIRE
 //#define VERBOSE_TANK
 
 namespace tank {

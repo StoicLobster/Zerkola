@@ -204,11 +204,6 @@ void Tank::_move(double dt_ms,
     _rotate_body_torque_cmnd = 0;
     if (rotate_body_cmnd == gc::AngularDirections::CCW) _rotate_body_torque_cmnd = gc::TANK_BODY_ROT_TRQ_CMND;
     else if (rotate_body_cmnd == gc::AngularDirections::CW) _rotate_body_torque_cmnd = -1*gc::TANK_BODY_ROT_TRQ_CMND;
-    //if (rotate_body_cmnd == gc::AngularDirections::CCW) _rotate_body_torque_cmnd += std::min(gc::TANK_BODY_ROT_TRQ_RATE_LIMIT, (gc::TANK_BODY_MAX_ROT_TRQ - _rotate_body_torque_cmnd)/dt_s)*dt_s;
-    //else if (rotate_body_cmnd == gc::AngularDirections::CW) _rotate_body_torque_cmnd += std::max(-1*gc::TANK_BODY_ROT_TRQ_RATE_LIMIT, (-1*gc::TANK_BODY_MAX_ROT_TRQ - _rotate_body_torque_cmnd)/dt_s)*dt_s;
-    //Limit torque command
-    //_rotate_body_torque_cmnd = std::max( _rotate_body_torque_cmnd, -1*gc::TANK_BODY_MAX_ROT_TRQ ); //tank torque limits
-    //_rotate_body_torque_cmnd = std::min( _rotate_body_torque_cmnd, gc::TANK_BODY_MAX_ROT_TRQ );
 
     #ifdef DEBUG_TANK 
         std::cout << "_translate_body_frc_cmnd: " << _translate_body_frc_cmnd << std::endl;
@@ -331,26 +326,29 @@ void Tank::_move(double dt_ms,
     if (_center.y() > gc::BOARD_PHYS_TOP) _center.y() = gc::BOARD_PHYS_TOP;
 
     /*** Rotate Tank Turret ***/
-    //Check if turret rotation already exceeded    
+    _rotate_turret_spd_cmnd = 0;
+    if (rotate_turret_cmnd == gc::AngularDirections::CCW) _rotate_turret_spd_cmnd = gc::TANK_TURRET_ROT_SPD*dt_s;
+    else if (rotate_turret_cmnd == gc::AngularDirections::CW) _rotate_turret_spd_cmnd = -1 * gc::TANK_TURRET_ROT_SPD*dt_s;
+    #ifdef DEBUG_TANK 
+        std::cout << "_rotate_turret_spd_cmnd: " << _rotate_turret_spd_cmnd << std::endl;
+    #endif
+    //Check if new turret rotation would exceed limits 
     double alpha = geo::AngBetweenVecs(_l_body, _l_turret)*geo::RAD_TO_DEG;
+    //alpha = std::max(alpha, -1*gc::TANK_TURRET_MAX_ANG);
+    //alpha = std::min(alpha, gc::TANK_TURRET_MAX_ANG);
     #ifdef DEBUG_TANK 
         std::cout << "alpha: " << alpha << std::endl;
     #endif
-    //TODO: Fix this. Need to check if new rotation would exceed limits
-    if ( (alpha < gc::TANK_TURRET_MAX_ANG) && (alpha > -1*gc::TANK_TURRET_MAX_ANG) ) {
+    if ( ((alpha + _rotate_turret_spd_cmnd) < gc::TANK_TURRET_MAX_ANG) && ((alpha + _rotate_turret_spd_cmnd) > -1*gc::TANK_TURRET_MAX_ANG) ) {
         //Rotate
-        _rotate_turret_spd_cmnd = 0;
-        if (rotate_turret_cmnd == gc::AngularDirections::CCW) _rotate_turret_spd_cmnd = gc::TANK_TURRET_ROT_SPD;
-        else if (rotate_turret_cmnd == gc::AngularDirections::CW) _rotate_turret_spd_cmnd = -1 * gc::TANK_TURRET_ROT_SPD;
-        #ifdef DEBUG_TANK 
-            std::cout << "_rotate_turret_spd_cmnd: " << _rotate_turret_spd_cmnd << std::endl;
-        #endif
         double theta_delta_max = gc::TANK_TURRET_MAX_ANG - alpha;
         double theta_delta_min = -1*gc::TANK_TURRET_MAX_ANG - alpha;
-        double theta_delta = _rotate_turret_spd_cmnd*dt_s;
+        double theta_delta = _rotate_turret_spd_cmnd;
         theta_delta = std::max(theta_delta, theta_delta_min);
         theta_delta = std::min(theta_delta, theta_delta_max);
         #ifdef DEBUG_TANK 
+            std::cout << "theta_delta_min [deg]: " << theta_delta_min << std::endl;
+            std::cout << "theta_delta_max [deg]: " << theta_delta_max << std::endl;
             std::cout << "theta_delta [deg]: " << theta_delta << std::endl;
         #endif
         Eigen::AngleAxis<double> rot(theta_delta/geo::RAD_TO_DEG, _k);
