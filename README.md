@@ -1,11 +1,7 @@
 # Zerkola
 A space tanks battle game!
 
-Thanks to Benno Evers and matplotlib-cpp! (https://github.com/lava/matplotlib-cpp)
+Current State:
+![Zerkola!](/media/zerkola_5_25_19.png)
+Format: ![Alt Text](url)
 
-Dependencies:
-- Eigen 3.3.7
-- ncurses
-- python2.7
-  - matplotlib
-  - numpy

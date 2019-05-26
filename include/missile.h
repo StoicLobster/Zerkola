@@ -7,7 +7,7 @@
 #include <list>
 #include <geometry.h>
 
-//#define DEBUG_RICOCHET
+#define DEBUG_RICOCHET
 
 namespace missile {
 
@@ -21,8 +21,10 @@ Eigen::Vector2d _dir; //Direction of missile
 long double _travel_dist; //cumulative distance travelled by missile
 bool _collision_active;
 //methods
-void _translate(const double& dist); //Translates object in the current direction by given distance
+void _move(double dt_ms); //Moves missile. If missile would collide with boundary, instead will calculate ricochet.
+void _translate(double dist); //Translates object in the current direction by given distance
 void _rotate_align(const Eigen::Vector2d& dir_align); //rotates the missile to align with the given direction
+void _setPose(); //Sets pose in base Sprite class and transforms to screen coordinates (negate y)
 
 /* Virtual Functions
  *
@@ -33,10 +35,10 @@ void _setupAnimations();
 public:
 //constructors
 Missile();
-Missile(graphics::Graphics* graphics_ptr, const int& id, const double& x, const double& y, const Eigen::Vector2d& tank_dir);
+Missile(graphics::Graphics* graphics_ptr, int id, double x, double y, const Eigen::Vector2d& tank_dir);
 virtual ~Missile();
 //methods
-void Move(); //Moves missile. If missile would collide with boundary, instead will calculate ricochet.
+void updateMissile(double dt_ms); //Moves missile and does housekeeping
 inline int ID() const { return(_ID); };
 
 };

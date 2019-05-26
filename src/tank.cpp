@@ -98,8 +98,11 @@ void Tank::_turn(const double dt_ms) {
     gc::AngularDirections rotate_body_cmnd = gc::AngularDirections::ANGULAR_NONE;
     gc::AngularDirections rotate_turret_cmnd = gc::AngularDirections::ANGULAR_NONE;
     //Parse input and execute move / fire
-    if (_input_ptr->wasKeyPressed(SDL_SCANCODE_SPACE) || _input_ptr->isKeyHeld(SDL_SCANCODE_SPACE)) {
+    if (_input_ptr->wasKeyPressed(SDL_SCANCODE_SPACE)) {
         //Fire a Missile
+        #ifdef DEBUG_TANK_FIRE 
+            std::cout << "Fire!" << std::endl;
+        #endif
         _fire(_missiles_ptr);
     }
     if (_input_ptr->wasKeyPressed(SDL_SCANCODE_UP) || _input_ptr->isKeyHeld(SDL_SCANCODE_UP)) {
@@ -157,10 +160,10 @@ void Tank::_setPose() {
     return;
 }
 
-void Tank::_move(const double dt_ms, 
-    const gc::LinearDirections translate_body_cmnd, 
-    const gc::AngularDirections rotate_body_cmnd,
-    const gc::AngularDirections rotate_turret_cmnd) {
+void Tank::_move(double dt_ms, 
+    gc::LinearDirections translate_body_cmnd, 
+    gc::AngularDirections rotate_body_cmnd,
+    gc::AngularDirections rotate_turret_cmnd) {
     #ifdef DEBUG_TANK 
         std::cout << "Tank::_move()" << std::endl;
     #endif
@@ -322,10 +325,10 @@ void Tank::_move(const double dt_ms,
     }
 
     //Limit Tank Position
-    if (_center.x() < gc::BOARD_MIN_X) _center.x() = gc::BOARD_MIN_X;
-    if (_center.x() > gc::BOARD_MAX_X) _center.x() = gc::BOARD_MAX_X;
-    if (_center.y() < gc::BOARD_MIN_Y) _center.y() = gc::BOARD_MIN_Y;
-    if (_center.y() > gc::BOARD_MAX_Y) _center.y() = gc::BOARD_MAX_Y;
+    if (_center.x() < gc::BOARD_PHYS_LEFT) _center.x() = gc::BOARD_PHYS_LEFT;
+    if (_center.x() > gc::BOARD_PHYS_RIGHT) _center.x() = gc::BOARD_PHYS_RIGHT;
+    if (_center.y() < gc::BOARD_PHYS_BOTTOM) _center.y() = gc::BOARD_PHYS_BOTTOM;
+    if (_center.y() > gc::BOARD_PHYS_TOP) _center.y() = gc::BOARD_PHYS_TOP;
 
     /*** Rotate Tank Turret ***/
     //Check if turret rotation already exceeded    
@@ -373,6 +376,10 @@ void Tank::_fire(std::list<missile::Missile*>* missiles) {
     missile::Missile* missile_ptr = new missile::Missile(_graphics_ptr, new_ID, _center.x(), _center.y(), tank_dir); //TODO: spawn missile at tip of turret
     missiles->push_back(missile_ptr);
     --_ammo;
+    #ifdef DEBUG_TANK_FIRE
+        std::cout << "New Missile ID: " << new_ID << std::endl;
+        std::cout << "Current Ammo: " << _ammo << std::endl;
+    #endif
     return;
 }
 
@@ -384,7 +391,7 @@ void Tank::drawTank() {
     return;
 }
 
-void Tank::updateTank(const double dt_ms) {
+void Tank::updateTank(double dt_ms) {
     #ifdef DEBUG_TANK 
         std::cout << "Tank::update()" << std::endl;
     #endif

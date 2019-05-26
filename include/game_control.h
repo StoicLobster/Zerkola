@@ -22,6 +22,23 @@ const int WINDOW_WIDTH = 640;
 const int WINDOW_HEIGHT = 480;
 const int WINDOW_SCREEN_LOCATION_X = 400;
 const int WINDOW_SCREEN_LOCATION_Y = 300;
+const int WINDOW_MARGIN = 50;
+// Board Size (window)
+const int BOARD_WDW_LEFT = WINDOW_MARGIN;
+const int BOARD_WDW_RIGHT = WINDOW_WIDTH - WINDOW_MARGIN;
+const int BOARD_WDW_TOP = WINDOW_MARGIN;
+const int BOARD_WDW_BOTTOM = WINDOW_HEIGHT - WINDOW_MARGIN;
+//Colors
+//Margin (Black)
+const int COLOR_MRGN_R = 0;
+const int COLOR_MRGN_G = 0;
+const int COLOR_MRGN_B = 0;
+const int COLOR_MRGN_A = 255;
+//Board (Gray)
+const int COLOR_BOARD_R = 150;
+const int COLOR_BOARD_G = 150;
+const int COLOR_BOARD_B = 150;
+const int COLOR_BOARD_A = 255;
 // Coordinate Systems
 // Note these are used for physics. All physics must occur in quadrant 4 (x >= 0 && y <= 0)
 const Eigen::Vector2i X_2D(1,0); //Global X unit vector
@@ -30,25 +47,25 @@ const Eigen::Vector3i X_3D(1,0,0); //Global X unit vector
 const Eigen::Vector3i Y_3D(0,1,0); //Global Y unit vector
 const Eigen::Vector3i Z_3D(0,0,1); //Global Z unit vector
 // Board Size (physics)
-const int WINDOW_MARGIN = 50;
-const int BOARD_MIN_X = WINDOW_MARGIN;
-const int BOARD_MAX_X = WINDOW_WIDTH - WINDOW_MARGIN;
-const int BOARD_MIN_Y = -1*WINDOW_HEIGHT + WINDOW_MARGIN;
-const int BOARD_MAX_Y = -1*WINDOW_MARGIN;
+const int BOARD_PHYS_LEFT = BOARD_WDW_LEFT;
+const int BOARD_PHYS_RIGHT = BOARD_WDW_RIGHT;
+const int BOARD_PHYS_TOP = -1*BOARD_WDW_TOP;
+const int BOARD_PHYS_BOTTOM = -1*BOARD_WDW_BOTTOM;
 // Store as vector list
 // <B0 , Bm>
-const Eigen::Vector2i BOARD_UL(BOARD_MIN_X, BOARD_MAX_Y);
-const Eigen::Vector2i BOARD_LL(BOARD_MAX_X, BOARD_MIN_Y);
+const Eigen::Vector2i BOARD_TL(BOARD_PHYS_LEFT, BOARD_PHYS_TOP);
+const Eigen::Vector2i BOARD_BR(BOARD_PHYS_RIGHT, BOARD_PHYS_BOTTOM);
 const std::list<std::pair<Eigen::Vector2i, Eigen::Vector2i>> BOARD_BOUNDARIES = {
-	{BOARD_UL, X_2D}, //UL East
-	{BOARD_UL, Y_2D}, //UL North	
-	{BOARD_LL, X_2D}, //LL East
-	{BOARD_LL, Y_2D} //LL North	
+	{BOARD_TL, X_2D}, //TL East
+	{BOARD_TL, Y_2D}, //TL North	
+	{BOARD_BR, X_2D}, //BR East
+	{BOARD_BR, Y_2D} //BR North	
 };
 
-// Tank Sprites (Image Coordinate System)
+//Tank Sprites (Image Coordinate System)
 const double SPRITE_SCALE = 1.0;
 const char* const SPRITE_ANIMATION_FILE_PATH = "content/sprites/sprites.png";
+//Body
 const int TANK_BODY_SPRITE_UPDATE_RATE_MS = 100;
 const int TANK_BODY_NUMBER_SPRITE_ROLL_ANIMATIONS = 3;
 const int TANK_BODY_SPRITE_WIDTH = 31;
@@ -59,15 +76,16 @@ const int BLUE_TANK_BODY_SPRITE_START_X = 0;
 const int BLUE_TANK_BODY_SPRITE_START_Y = RED_TANK_BODY_SPRITE_START_Y + 2*TANK_BODY_SPRITE_HEIGHT;
 const int TANK_BODY_CENTER_RELATIVE_TO_UL_X = 15; //add to UL to get center
 const int TANK_BODY_CENTER_RELATIVE_TO_UL_Y = 12; //add to UL to get center
-const int TANK_TURRET_SPRITE_WIDTH = 11;
+//Turret
+const int TANK_TURRET_SPRITE_WIDTH = 13;
 const int TANK_TURRET_SPRITE_HEIGHT = 25;
 const int RED_TANK_TURRET_SPRITE_START_X = 0;
 const int RED_TANK_TURRET_SPRITE_START_Y = BLUE_TANK_BODY_SPRITE_START_Y + 2*TANK_BODY_SPRITE_HEIGHT;
 const int BLUE_TANK_TURRET_SPRITE_START_X = 0;
 const int BLUE_TANK_TURRET_SPRITE_START_Y = RED_TANK_TURRET_SPRITE_START_Y + TANK_TURRET_SPRITE_HEIGHT;
-const int TANK_TURRET_CENTER_RELATIVE_TO_UL_X = 5; //add to UL to get center
+const int TANK_TURRET_CENTER_RELATIVE_TO_UL_X = 6; //add to UL to get center
 const int TANK_TURRET_CENTER_RELATIVE_TO_UL_Y = 18; //add to UL to get center
-// Tank Dynamics
+//Tank Dynamics
 const double TANK_RAD_COL = 30; //[m] Radius of collision for tank
 const double TANK_MASS = 1000; //[kg] Mass of tank
 const double TANK_MOMENT_OF_INERTIA_Z = 500; //[kg*m^2] Moment of inertia of tank about z axis
@@ -83,17 +101,18 @@ const double TANK_TURRET_MAX_ANG = 130; //[deg] Maximum angle (+/-) that turret 
 // Missile Sprite
 const int MISSILE_SPRITE_UPDATE_RATE_MS = 100;
 const int MISSILE_NUMBER_SPRITE_ANIMATIONS = 4;
-const int MISSILE_SPRITE_WIDTH = 5;
-const int MISSILE_SPRITE_HEIGHT = 11;
+const int MISSILE_SPRITE_WIDTH = 7;
+const int MISSILE_SPRITE_HEIGHT = 14;
 const int MISSILE_SPRITE_START_X = 0;
 const int MISSILE_SPRITE_START_Y = BLUE_TANK_TURRET_SPRITE_START_Y + TANK_TURRET_SPRITE_HEIGHT;
-const int MISSILE_CENTER_RELATIVE_TO_UL_X = 2; //add to UL to get center
-const int MISSILE_CENTER_RELATIVE_TO_UL_Y = 3; //add to UL to get center
+const int MISSILE_CENTER_RELATIVE_TO_UL_X = 3; //add to UL to get center
+const int MISSILE_CENTER_RELATIVE_TO_UL_Y = 4; //add to UL to get center
 // Missile Dynamics
 const double MISSILE_RAD_COL = 3; //Missile radius of collision
-const double MISSLE_SPEED = 2; //default missile speed
+const double MISSLE_SPEED = 150; //default missile speed
 const long double MISSILE_ACTIVE_DIST = 10; //Distance missile must travel before it becomes active
 const long double MISSILE_MAX_DIST = 99999999; //Maximum distance a missile can travel before being deleted TODO
+const int MISSILE_RICOCHET_TOL = 1; //Tolerance for missile ricochet to account for floating point error
 // Environment Dyncamis
 const double SURF_STATIC_MU = 1.0;
 const double SURF_KINETIC_MU = 0.4;

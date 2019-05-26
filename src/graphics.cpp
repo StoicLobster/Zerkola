@@ -18,12 +18,12 @@ Graphics::Graphics():
     if (_window == nullptr) {
         std::cout << "Error could not create window" << SDL_GetError() << std::endl;
     }
-    SDL_SetRenderDrawColor(_renderer, 150, 150, 150, 255);
-    SDL_RenderClear(_renderer);
-    SDL_RenderPresent(_renderer);
-    #ifdef DEBUG_GRAPHICS
-        std::cout << "Graphics::Graphics Constructor" << std::endl;
-    #endif
+    //Define Board
+    _board.x = gc::BOARD_WDW_LEFT;
+    _board.y = gc::BOARD_WDW_TOP;
+    _board.w = gc::BOARD_WDW_RIGHT - gc::BOARD_WDW_LEFT;
+    _board.h = gc::BOARD_WDW_BOTTOM - gc::BOARD_WDW_TOP;
+    clear();
 }
 
 Graphics::~Graphics() {
@@ -58,7 +58,15 @@ void Graphics::flip() {
 }
 
 void Graphics::clear() {
-    SDL_RenderClear(_renderer);
+    //Make margin black
+    SDL_SetRenderDrawColor(_renderer, gc::COLOR_MRGN_R, gc::COLOR_MRGN_G, gc::COLOR_MRGN_B, gc::COLOR_MRGN_A);
+    SDL_RenderClear(_renderer); //Fills screen with current RenderDrawColor
+    //Set Board Color
+    SDL_SetRenderDrawColor(_renderer, gc::COLOR_BOARD_R, gc::COLOR_BOARD_G, gc::COLOR_BOARD_B, gc::COLOR_BOARD_A);
+    SDL_RenderFillRect(_renderer, &_board);
+    //Render
+    //SDL_RenderPresent(_renderer);
+    return;
 }
 
 SDL_Renderer* Graphics::getRenderer() const {

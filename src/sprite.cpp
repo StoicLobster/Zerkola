@@ -38,8 +38,8 @@ Sprite::Sprite(graphics::Graphics* graphics_ptr, const std::string &filePath, in
     }
 }
 
-void Sprite::draw() const {
-    #ifdef DEBUG_SPRITE 
+void Sprite::draw(bool verbose) const {
+    if (verbose) {
         std::cout << "Sprite::draw()" << std::endl;
         std::cout << "_upper_left_corner.x(): " << _upper_left_corner.x() << std::endl;
         std::cout << "_upper_left_corner.y(): " << _upper_left_corner.y() << std::endl;
@@ -47,7 +47,7 @@ void Sprite::draw() const {
         std::cout << "_dir.y(): " << _dir.y() << std::endl;
         std::cout << "_center_of_rotation.x(): " << _center_of_rotation.x() << std::endl;
         std::cout << "_center_of_rotation.y(): " << _center_of_rotation.y() << std::endl;
-    #endif
+    }
     //Create destination rectangle on screen
     //This is where double is converted to 
     int UL_x, UL_y, width, height;
@@ -55,12 +55,12 @@ void Sprite::draw() const {
     height = static_cast<int>(_sourceRect.h*gc::SPRITE_SCALE);
     UL_x = _upper_left_corner.x();
     UL_y = _upper_left_corner.y();
-    #ifdef DEBUG_SPRITE 
+    if (verbose) { 
         std::cout << "width: " << width << std::endl;
         std::cout << "height: " << height << std::endl;
         std::cout << "UL_x: " << UL_x << std::endl;
         std::cout << "UL_y: " << UL_y << std::endl;
-    #endif
+    }
     //Assert on window limits
     assert((UL_x + width) <= gc::WINDOW_WIDTH);
     assert(UL_x >= 0);
@@ -71,9 +71,9 @@ void Sprite::draw() const {
     Eigen::Vector2d v1(gc::Y_2D.cast<double>());
     Eigen::Vector2d v2(_dir.cast<double>());
     double theta = geo::AngBetweenVecs(v1, v2, gc::AngularDirections::CW)*geo::RAD_TO_DEG; //Note angle must be in degrees
-    #ifdef DEBUG_SPRITE 
+    if (verbose) {
         std::cout << "theta: " << theta << std::endl;
-    #endif
+    }
     SDL_Point center_point = {_center_of_rotation.x(), _center_of_rotation.y()};
     //Render
     _graphics_ptr->renderCopy(_spriteSheet, &_sourceRect, &destinationRectangle, theta, &center_point);

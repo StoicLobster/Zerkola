@@ -20,6 +20,7 @@ private:
     SDL_Window* _window; //Where game is drawn to
     SDL_Renderer* _renderer; //What does the drawing to the window
     std::map<std::string, SDL_Surface*> _spriteSheets;
+    SDL_Rect _board; //Board is window less the margins. This is where game is played
     
 public:
     Graphics();

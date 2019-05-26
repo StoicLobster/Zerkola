@@ -25,7 +25,7 @@ public:
 Sprite();
 Sprite(graphics::Graphics* graphics_ptr, const std::string &filePath, int sourceX, int sourceY, int width, int height);
 virtual ~Sprite();
-void draw() const; //Draws sprite to graphics
+void draw(bool verbose=false) const; //Draws sprite to graphics
 inline void setUL(const Eigen::Vector2i& UL) { _upper_left_corner = UL; };
 inline void setCOR(const Eigen::Vector2i& center) { _center_of_rotation = center; };
 inline void setDirection(const Eigen::Vector2d& dir) { _dir = dir; };

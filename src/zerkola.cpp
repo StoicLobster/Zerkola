@@ -77,7 +77,7 @@ void Zerkola::draw() {
     _graphics.clear();
 
     //Draw Missiles
-    for (auto& missile : _missiles) {
+    for (auto missile : _missiles) {
         missile->draw();
     }
 
@@ -92,6 +92,9 @@ void Zerkola::draw() {
 void Zerkola::update() {    
     _tank_blue->updateTank(_elapsedTime);
     _tank_red->updateTank(_elapsedTime);
+    for (auto missile : _missiles) {
+        missile->updateMissile(_elapsedTime);
+    }
     return;
 }
 

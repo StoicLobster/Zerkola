@@ -94,15 +94,14 @@ void AnimatedSprite::update(int elapsedTime) {
     return;
 }
 
-void AnimatedSprite::draw() {
-    #ifdef DEBUG_ANIMATED_SPRITE 
-        std::cout << "AnimatedSprite::draw()" << std::endl;
-    #endif
+void AnimatedSprite::draw(bool verbose) {
+    if (verbose) std::cout << "AnimatedSprite::draw()" << std::endl;
     if (_visible) {
         //Set current _sourceRect
         _sourceRect = _animations[_currentAnimation][_frameIdx];
+        if (verbose) std::cout << "Current Animation: " << _currentAnimation << ", Current Frame: " << _frameIdx << std::endl;
         //Draw
-        sprite::Sprite::draw();
+        sprite::Sprite::draw(verbose);
     }
     return;
 }

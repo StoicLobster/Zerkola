@@ -42,7 +42,7 @@ void playAnimation(std::string animation, bool once = false); //plays the animat
  * updates the animated sprite timer and adjusts the sprite frame
  */
 void update(int elapsedTime);
-void draw(); //draw sprite on screen at current position and orientation (of Sprite)
+void draw(bool verbose=false); //draw sprite on screen at current position and orientation (of Sprite)
 };
 
 }
