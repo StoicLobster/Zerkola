@@ -8,6 +8,7 @@
 #include <input.h>
 #include <algorithm>
 #include <iostream>
+#include <human_player.h>
 
 namespace zerkola {
 
@@ -16,16 +17,49 @@ Zerkola::Zerkola():
     _input(),
     _event()
 {
-    loop(); //begin game
+    bool success = setup(); //setup game
+    if (success) loop(); //begin game
 }
 
-Zerkola::~Zerkola() {}
+Zerkola::~Zerkola() {
+    //Technically Tank class allocates missile memory, but cleanup makes more sense here as Zerkola is the owner of missile list
+    for (auto missile : _missiles) {
+        delete missile;
+    }
+}
+
+bool Zerkola::setup() {
+    std::cout << "Welcome to Zerkola!" << std::endl;
+    std::cout << "What computer would you like to play against?" << std::endl;
+    std::cout << std::endl;
+    for (auto& ele : gc::ComputerPlayerList) {
+        std::cout << ele.second << std::endl;
+    }
+    std::cout << std::endl;
+    int inpt = 0; //Human
+    while (gc::ComputerPlayerList.find(static_cast<gc::PlayerType>(inpt)) == gc::ComputerPlayerList.end()) {
+        std::cout << "Please select a computer player number from the list." << std::endl;
+        std::cin >> inpt;
+    }
+    gc::PlayerType comp_player = static_cast<gc::PlayerType>(inpt);
+    //Instantiate players
+    _tank_blue = new human_player::HumanPlayer(&_graphics, &_missiles, &_input);
+    switch (comp_player) {
+        case gc::PlayerType::COMPUTER_R2D2:
+            _tank_red = new r2d2::R2D2(&_graphics, gc::PlayerColor::RED, &_missiles);
+            break;
+        case gc::PlayerType::COMPUTER_SKYNET:
+            _tank_red = new r2d2::R2D2(&_graphics, gc::PlayerColor::RED, &_missiles); //FIXME
+            break;
+        default:
+            return(false);
+            break;
+    }
+    std::cout << "GLHF!" << std::endl;
+    return(true);
+}
 
 void Zerkola::loop() {         
-    //Instantiate players
-    _tank_blue = new tank::Tank(&_graphics, gc::PlayerColor::BLUE, &_missiles, &_input); //Always human player
-    _tank_red = new r2d2::R2D2(&_graphics, gc::PlayerColor::RED, &_missiles); //Always AI
-
     int last_update_time_ms = SDL_GetTicks(); //[ms] time since SDL_Init was called
     //Start game loop
     while (true) {

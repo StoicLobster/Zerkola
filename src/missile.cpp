@@ -7,7 +7,13 @@ Missile::Missile(): _ID(0) {};
 
 Missile::~Missile() {};
 
-Missile::Missile(graphics::Graphics* graphics_ptr, int id, double x, double y, const Eigen::Vector2d& tank_dir): 
+Missile::Missile(
+    graphics::Graphics* graphics_ptr, 
+    int id, 
+    double x, 
+    double y, 
+    const Eigen::Vector2d& tank_dir): 
+
 animated_sprite::AnimatedSprite(
     graphics_ptr, 
     gc::SPRITE_ANIMATION_FILE_PATH, 
@@ -16,6 +22,7 @@ animated_sprite::AnimatedSprite(
     gc::MISSILE_SPRITE_WIDTH, 
     gc::MISSILE_SPRITE_HEIGHT,
     gc::MISSILE_SPRITE_UPDATE_RATE_MS),
+
 _ID(id),
 _center(x,y),
 _dir(tank_dir),
@@ -33,8 +40,14 @@ _collision_active(false)
 void Missile::_animationDone(std::string currentAnimation) {}; //TODO?
 
 void Missile::_setupAnimations() {
-    _addAnimation(gc::MISSILE_NUMBER_SPRITE_ANIMATIONS, gc::MISSILE_SPRITE_START_X, gc::MISSILE_SPRITE_START_Y, 
-        "Move", gc::MISSILE_SPRITE_WIDTH, gc::MISSILE_SPRITE_HEIGHT, false);
+    _addAnimation(
+        gc::MISSILE_NUMBER_SPRITE_ANIMATIONS, 
+        gc::MISSILE_SPRITE_START_X, 
+        gc::MISSILE_SPRITE_START_Y, 
+        "Move", 
+        gc::MISSILE_SPRITE_WIDTH, 
+        gc::MISSILE_SPRITE_HEIGHT, 
+        false);
     //TODO add explosion animations
     return;
 }
@@ -71,7 +84,6 @@ void Missile::_setPose() {
     assert(body_UL_y >= 0);
     Eigen::Vector2i UL_body(body_UL_x, body_UL_y);
     this->setUL(UL_body);
-
     return;
 }
 
@@ -81,12 +93,12 @@ void Missile::_move(double dt_ms) {
     //Determine closest intersection point (init with max)
     double intersect_dist = sqrt( pow((gc::BOARD_PHYS_TOP-gc::BOARD_PHYS_BOTTOM),2) + pow((gc::BOARD_PHYS_RIGHT-gc::BOARD_PHYS_LEFT),2) );
     Eigen::Vector2d intersect_pt;
-    for (const auto& bdry : gc::BOARD_BOUNDARIES) {
+    for (const auto& bdry : gc::BOARD_PHYS_BOUNDARIES) {
         Eigen::Vector2d I, B0, Bm;
         B0 = bdry.first.cast<double>();
         Bm = bdry.second.cast<double>();
         double lambda;
-        if (geo::VectorIntersection(_center,_dir,B0,Bm,lambda,I)) {
+        if (geo::LineLineIntersection(_center,_dir,B0,Bm,lambda,I)) {
             //non-parallel
             if ((lambda > 0) && (lambda < intersect_dist)) {
                 intersect_dist = lambda;

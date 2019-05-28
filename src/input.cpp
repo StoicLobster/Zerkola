@@ -1,7 +1,3 @@
-/* Input class
- * Keeps track of keyboard and mouse state
- */
-
 #include <input.h>
 
 namespace input {
@@ -24,16 +20,4 @@ void Input::keyDownEvent(const SDL_Event& event) {
     return;
 }
 
-bool Input::wasKeyPressed(const SDL_Scancode& key) {
-    return(_pressedKeys[key]); //Important note, when map is queried with [] for an element it does not contain, it adds a default element with that key (in this case false)
-}
-
-bool Input::wasKeyReleased(const SDL_Scancode& key) {
-    return(_releasedKeys[key]);
-}
-
-bool Input::isKeyHeld(const SDL_Scancode& key) {
-    return(_heldKeys[key]);
-}
-
-} //input
+} //namespace input

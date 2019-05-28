@@ -1,7 +1,3 @@
-/* AnimatedSprite class
- * Animates sprites...
- */
-
 #include <animated_sprite.h>
 #include <game_control.h>
 #include <geometry.h>
@@ -11,24 +7,45 @@ namespace animated_sprite {
 
 AnimatedSprite::AnimatedSprite() {}
 
-AnimatedSprite::AnimatedSprite(graphics::Graphics* graphics_ptr, const std::string& filePath, int sourceX, int sourceY,
-    int width, int height, double timeToUpdate):
-    Sprite(graphics_ptr, filePath, sourceX, sourceY, width, height),
-    _frameIdx(0),
-    _timeElapsed(0.0),
-    _visible(true),
-    _timeToUpdate(timeToUpdate),
-    _currentAnimationOnce(false),
-    _currentAnimation("Idle")       
-    {
-        #ifdef DEBUG_ANIMATED_SPRITE 
-            std::cout << "===== AnimatedSprite Constructor Called =====" << std::endl;
-        #endif
-    }
+AnimatedSprite::AnimatedSprite(
+    graphics::Graphics* graphics_ptr, 
+    const std::string& filePath, 
+    int sourceX,
+    int sourceY,
+    int width, 
+    int height, 
+    double timeToUpdate):
+
+sprite::Sprite(
+    graphics_ptr, 
+    filePath, 
+    sourceX, 
+    sourceY, 
+    width, 
+    height),
+
+_frameIdx(0),
+_timeToUpdate(timeToUpdate),
+_timeElapsed(0.0),
+_visible(true),
+_currentAnimationOnce(false),
+_currentAnimation("Idle")       
+{
+    #ifdef DEBUG_ANIMATED_SPRITE 
+        std::cout << "===== AnimatedSprite Constructor Called =====" << std::endl;
+    #endif
+}
 
 AnimatedSprite::~AnimatedSprite() {}
 
-void AnimatedSprite::_addAnimation(int frames, int sprite_x0, int sprite_y0, std::string name, int width, int height, bool reverse) {
+void AnimatedSprite::_addAnimation(
+    int frames, 
+    int sprite_x0, 
+    int sprite_y0, 
+    std::string name, 
+    int width, 
+    int height, 
+    bool reverse) {
     #ifdef DEBUG_ANIMATED_SPRITE 
         std::cout << "AnimatedSprite::_addAnimation()" << std::endl;
     #endif
@@ -46,13 +63,6 @@ void AnimatedSprite::_addAnimation(int frames, int sprite_x0, int sprite_y0, std
     }
 
     _animations.insert(std::pair< std::string, std::vector<SDL_Rect> >(name, rectangles));
-    //_offsets.insert(std::pair<std::string, Eigen::Vector2d>(name,offset));
-    return;
-}
-
-void AnimatedSprite::_resetAnimations() {
-    _animations.clear();
-    //_offsets.clear();
     return;
 }
 
@@ -62,17 +72,6 @@ void AnimatedSprite::playAnimation(std::string animation, bool once) {
         _currentAnimation = animation;
         _frameIdx = 0;
     }
-    return;
-}
-
-void AnimatedSprite::_setVisible(bool visible) {
-    _visible = visible;
-    return;
-}
-
-void AnimatedSprite::_stopAnimation() {
-    _frameIdx = 0;
-    _animationDone(_currentAnimation);
     return;
 }
 
@@ -106,4 +105,4 @@ void AnimatedSprite::draw(bool verbose) {
     return;
 }
 
-}
+} //namespace animated_sprite

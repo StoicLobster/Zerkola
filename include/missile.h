@@ -7,41 +7,63 @@
 #include <list>
 #include <geometry.h>
 
-#define DEBUG_RICOCHET
+//#define DEBUG_RICOCHET
 
 namespace missile {
 
+/* Missile class. Contains logic for ricochet */
 class Missile : public animated_sprite::AnimatedSprite {
 
+/*=== START PRIVATE ===*/
 private:
-//members
-const unsigned int _ID; //unique ID for missile
-Eigen::Vector2d _center; //Center of missile
-Eigen::Vector2d _dir; //Direction of missile
-long double _travel_dist; //cumulative distance travelled by missile
-bool _collision_active;
-//methods
-void _move(double dt_ms); //Moves missile. If missile would collide with boundary, instead will calculate ricochet.
-void _translate(double dist); //Translates object in the current direction by given distance
-void _rotate_align(const Eigen::Vector2d& dir_align); //rotates the missile to align with the given direction
-void _setPose(); //Sets pose in base Sprite class and transforms to screen coordinates (negate y)
+    /* Unique ID for missile */
+    const unsigned int _ID;
 
-/* Virtual Functions
- *
- */
-void _animationDone(std::string currentAnimation);
-void _setupAnimations();
+    /* Center of missile */
+    Eigen::Vector2d _center;
 
+    /* Direction of missile */
+    Eigen::Vector2d _dir;
+
+    /* [m] Cumulative distance travelled by missile */
+    long double _travel_dist;
+
+    /* True if missile is active and capable of inducing a collision */
+    bool _collision_active;
+
+    /* Moves missile for a given frame. If missile would collide with boundary, will appropriately calculate ricochet dynamics */
+    void _move(double dt_ms);
+
+    /* Translates object in the current direction by given distance */
+    void _translate(double dist);
+
+    /* Rotates the missile to align with the given direction */
+    void _rotate_align(const Eigen::Vector2d& dir_align);
+
+    /* Sets pose in base Sprite class and transforms to screen coordinates (negate y) */
+    void _setPose();
+
+    /* Logic that happens when animation ends */
+    void _animationDone(std::string currentAnimation);
+
+    /* Sets up all animations for a sprite */
+    void _setupAnimations();
+/*=== END PRIVATE ===*/
+
+/*=== START PUBLIC ===*/
 public:
-//constructors
-Missile();
-Missile(graphics::Graphics* graphics_ptr, int id, double x, double y, const Eigen::Vector2d& tank_dir);
-virtual ~Missile();
-//methods
-void updateMissile(double dt_ms); //Moves missile and does housekeeping
-inline int ID() const { return(_ID); };
+    Missile();
+    virtual ~Missile();
+    Missile(graphics::Graphics* graphics_ptr, int id, double x, double y, const Eigen::Vector2d& tank_dir);
 
-};
+    /* Moves missile and does housekeeping */
+    void updateMissile(double dt_ms);
+
+    /* Returns ID */
+    inline int ID() const { return(_ID); };
+/*=== END PUBLIC ===*/
+
+}; //class Missile
 
 } //namespace missile
 

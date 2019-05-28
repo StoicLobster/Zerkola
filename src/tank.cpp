@@ -10,7 +10,10 @@ Tank::Tank() {};
 
 Tank::~Tank() {};
 
-Tank::Tank(graphics::Graphics* graphics_ptr, gc::PlayerColor player_color, std::list<missile::Missile*>* missiles_ptr, input::Input* input_ptr): 
+Tank::Tank(graphics::Graphics* graphics_ptr, 
+    gc::PlayerColor player_color, 
+    std::list<missile::Missile*>* missiles_ptr): 
+
 animated_sprite::AnimatedSprite(
     graphics_ptr, 
     gc::SPRITE_ANIMATION_FILE_PATH, 
@@ -19,21 +22,22 @@ animated_sprite::AnimatedSprite(
     gc::TANK_BODY_SPRITE_WIDTH, 
     gc::TANK_BODY_SPRITE_HEIGHT,
     gc::TANK_BODY_SPRITE_UPDATE_RATE_MS),
-    _color(player_color),
-    _graphics_ptr(graphics_ptr),
-    _input_ptr(input_ptr),
-    _missiles_ptr(missiles_ptr),
-    _turret(graphics_ptr, 
+
+_color(player_color),
+_graphics_ptr(graphics_ptr),
+
+_turret(graphics_ptr, 
     gc::SPRITE_ANIMATION_FILE_PATH, 
     player_color == gc::PlayerColor::RED ? gc::RED_TANK_TURRET_SPRITE_START_X : gc::BLUE_TANK_TURRET_SPRITE_START_X, 
     player_color == gc::PlayerColor::RED ? gc::RED_TANK_TURRET_SPRITE_START_Y : gc::BLUE_TANK_TURRET_SPRITE_START_Y, 
     gc::TANK_TURRET_SPRITE_WIDTH, 
     gc::TANK_TURRET_SPRITE_HEIGHT),
-_l_body(gc::Y_3D.cast<double>()),
-_t_body(-1*gc::X_3D.cast<double>()),
-_l_turret(gc::Y_3D.cast<double>()),
-_t_turret(-1*gc::X_3D.cast<double>()),
-_k(gc::Z_3D.cast<double>()),
+
+_l_body(gc::Y_3D_PHYS.cast<double>()),
+_t_body(-1*gc::X_3D_PHYS.cast<double>()),
+_l_turret(gc::Y_3D_PHYS.cast<double>()),
+_t_turret(-1*gc::X_3D_PHYS.cast<double>()),
+_k(gc::Z_3D_PHYS.cast<double>()),
 _body_lin_v(0.0,0.0,0.0),
 _body_lin_a(0.0,0.0,0.0),
 _body_ang_v(0.0,0.0,0.0),
@@ -49,16 +53,17 @@ _tractive_accel_limit_mag(0.0),
 _slip(false),
 _ammo(gc::MAX_MISSILES_PER_PLAYER),
 _fire_this_turn(false),
-_move_this_turn(false)
+_move_this_turn(false),
+_missiles_ptr(missiles_ptr)
 {
     //Set starting position in game
     double start_x, start_y;
     if (_color == gc::PlayerColor::RED) {
-        start_x = gc::RED_PLAYER_START_POS_X;
-        start_y = gc::RED_PLAYER_START_POS_Y;
+        start_x = gc::RED_PLAYER_START_POS_X_PHYS;
+        start_y = gc::RED_PLAYER_START_POS_Y_PHYS;
     } else {
-        start_x = gc::BLUE_PLAYER_START_POS_X;
-        start_y = gc::BLUE_PLAYER_START_POS_Y;
+        start_x = gc::BLUE_PLAYER_START_POS_X_PHYS;
+        start_y = gc::BLUE_PLAYER_START_POS_Y_PHYS;
     }
     //Set starting vectors and NEGATE y coordinate
     _center.x() = start_x;
@@ -87,44 +92,6 @@ void Tank::_setupAnimations() {
     _addAnimation(gc::TANK_BODY_NUMBER_SPRITE_ROLL_ANIMATIONS, sprite_start_x, sprite_start_y, "RollForward", gc::TANK_BODY_SPRITE_WIDTH, gc::TANK_BODY_SPRITE_HEIGHT, false);
     _addAnimation(gc::TANK_BODY_NUMBER_SPRITE_ROLL_ANIMATIONS, sprite_start_x, sprite_start_y, "RollBackward", gc::TANK_BODY_SPRITE_WIDTH, gc::TANK_BODY_SPRITE_HEIGHT, true);
     //TODO add turning animations
-    return;
-}
-
-void Tank::_turn(const double dt_ms) {
-    #ifdef DEBUG_TANK 
-        std::cout << "Tank::_turn()" << std::endl;
-    #endif
-    gc::LinearDirections translate_body_cmnd = gc::LinearDirections::LINEAR_NONE;
-    gc::AngularDirections rotate_body_cmnd = gc::AngularDirections::ANGULAR_NONE;
-    gc::AngularDirections rotate_turret_cmnd = gc::AngularDirections::ANGULAR_NONE;
-    //Parse input and execute move / fire
-    if (_input_ptr->wasKeyPressed(SDL_SCANCODE_SPACE)) {
-        //Fire a Missile
-        #ifdef DEBUG_TANK_FIRE 
-            std::cout << "Fire!" << std::endl;
-        #endif
-        _fire(_missiles_ptr);
-    }
-    if (_input_ptr->wasKeyPressed(SDL_SCANCODE_UP) || _input_ptr->isKeyHeld(SDL_SCANCODE_UP)) {
-        translate_body_cmnd = gc::LinearDirections::FORWARD;
-        animated_sprite::AnimatedSprite::playAnimation("RollForward");
-    } else if (_input_ptr->wasKeyPressed(SDL_SCANCODE_DOWN) || _input_ptr->isKeyHeld(SDL_SCANCODE_DOWN)) {
-        translate_body_cmnd = gc::LinearDirections::REVERSE;
-        animated_sprite::AnimatedSprite::playAnimation("RollBackward");
-    }
-    if (_input_ptr->wasKeyPressed(SDL_SCANCODE_RIGHT) || _input_ptr->isKeyHeld(SDL_SCANCODE_RIGHT)) {
-        rotate_body_cmnd = gc::AngularDirections::CW;
-    } else if (_input_ptr->wasKeyPressed(SDL_SCANCODE_LEFT) || _input_ptr->isKeyHeld(SDL_SCANCODE_LEFT)) {
-        rotate_body_cmnd = gc::AngularDirections::CCW;
-    }
-    if (_input_ptr->wasKeyPressed(SDL_SCANCODE_D) || _input_ptr->isKeyHeld(SDL_SCANCODE_D)) {
-        rotate_turret_cmnd = gc::AngularDirections::CW;
-    } else if (_input_ptr->wasKeyPressed(SDL_SCANCODE_A) || _input_ptr->isKeyHeld(SDL_SCANCODE_A)) {
-        rotate_turret_cmnd = gc::AngularDirections::CCW;
-    }
-    _move(dt_ms, translate_body_cmnd, rotate_body_cmnd, rotate_turret_cmnd);
-
-    
     return;
 }
 
@@ -172,6 +139,7 @@ void Tank::_move(double dt_ms,
     _move_this_turn = true;
     if (dt_ms == 0.0) return;
     double dt_s = dt_ms/1000.0;
+    playAnimation("Idle");
     #ifdef DEBUG_TANK 
         std::cout << "dt_ms: " << dt_ms << std::endl;
         std::cout << "dt_s: " << dt_s << std::endl;
@@ -197,13 +165,23 @@ void Tank::_move(double dt_ms,
     #endif
     
     //Apply linear body motion commands
-    if (translate_body_cmnd == gc::LinearDirections::FORWARD) _translate_body_frc_cmnd += std::min(gc::TANK_BODY_FRWD_FRC_RATE_LIMIT, (gc::TANK_BODY_MAX_FRWD_FRC - _translate_body_frc_cmnd)/dt_s)*dt_s;
-    else if (translate_body_cmnd == gc::LinearDirections::REVERSE) _translate_body_frc_cmnd += std::max(gc::TANK_BODY_REV_FRC_RATE_LIMIT, (gc::TANK_BODY_MAX_REV_FRC - _translate_body_frc_cmnd)/dt_s)*dt_s;
+    if (translate_body_cmnd == gc::LinearDirections::FORWARD) {
+        playAnimation("RollForward");
+        _translate_body_frc_cmnd += std::min(gc::TANK_BODY_FRWD_FRC_RATE_LIMIT, (gc::TANK_BODY_MAX_FRWD_FRC - _translate_body_frc_cmnd)/dt_s)*dt_s;
+    } else if (translate_body_cmnd == gc::LinearDirections::REVERSE) {
+        playAnimation("RollBackward");
+        _translate_body_frc_cmnd += std::max(gc::TANK_BODY_REV_FRC_RATE_LIMIT, (gc::TANK_BODY_MAX_REV_FRC - _translate_body_frc_cmnd)/dt_s)*dt_s;
+    }
 
     //Apply rotational body motion commands
     _rotate_body_torque_cmnd = 0;
-    if (rotate_body_cmnd == gc::AngularDirections::CCW) _rotate_body_torque_cmnd = gc::TANK_BODY_ROT_TRQ_CMND;
-    else if (rotate_body_cmnd == gc::AngularDirections::CW) _rotate_body_torque_cmnd = -1*gc::TANK_BODY_ROT_TRQ_CMND;
+    if (rotate_body_cmnd == gc::AngularDirections::CCW) {
+        _rotate_body_torque_cmnd = gc::TANK_BODY_ROT_TRQ_CMND;
+        //TODO playAnimation()
+    } else if (rotate_body_cmnd == gc::AngularDirections::CW) {
+        _rotate_body_torque_cmnd = -1*gc::TANK_BODY_ROT_TRQ_CMND;
+        //TODO playAnimation()
+    }
 
     #ifdef DEBUG_TANK 
         std::cout << "_translate_body_frc_cmnd: " << _translate_body_frc_cmnd << std::endl;
@@ -234,7 +212,7 @@ void Tank::_move(double dt_ms,
         double M_RR = 0;
         if (_body_ang_v.z() > 0) M_RR = -1*gc::RR_TRQ;
         else if (_body_ang_v.z() < 0) M_RR = gc::RR_TRQ;
-        _body_ang_a = (_rotate_body_torque_cmnd + M_RR)/gc::TANK_MOMENT_OF_INERTIA_Z * gc::Z_3D.cast<double>();
+        _body_ang_a = (_rotate_body_torque_cmnd + M_RR)/gc::TANK_MOMENT_OF_INERTIA_Z * gc::Z_3D_PHYS.cast<double>();
         #ifdef DEBUG_TANK 
             std::cout << "== ANGULAR ==" << std::endl;
             std::cout << "_body_ang_a: " << _body_ang_a << std::endl;
@@ -369,9 +347,11 @@ void Tank::_fire(std::list<missile::Missile*>* missiles) {
     if (_fire_this_turn) return;
     _fire_this_turn = true;
     if (_ammo <= 0) return;
+    //Reduce ammo
     short new_ID = gc::MAX_MISSILES_PER_PLAYER - _ammo;
+    //Align new missile with turret direction
     Eigen::Vector2d tank_dir(_l_turret.x(),_l_turret.y());
-    missile::Missile* missile_ptr = new missile::Missile(_graphics_ptr, new_ID, _center.x(), _center.y(), tank_dir); //TODO: spawn missile at tip of turret
+    missile::Missile* missile_ptr = new missile::Missile(_graphics_ptr, new_ID, _center.x(), _center.y(), tank_dir);
     missiles->push_back(missile_ptr);
     --_ammo;
     #ifdef DEBUG_TANK_FIRE

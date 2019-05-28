@@ -19,10 +19,10 @@ Graphics::Graphics():
         std::cout << "Error could not create window" << SDL_GetError() << std::endl;
     }
     //Define Board
-    _board.x = gc::BOARD_WDW_LEFT;
-    _board.y = gc::BOARD_WDW_TOP;
-    _board.w = gc::BOARD_WDW_RIGHT - gc::BOARD_WDW_LEFT;
-    _board.h = gc::BOARD_WDW_BOTTOM - gc::BOARD_WDW_TOP;
+    _board.x = gc::BOARD_WNDW_LEFT;
+    _board.y = gc::BOARD_WNDW_TOP;
+    _board.w = gc::BOARD_WNDW_RIGHT - gc::BOARD_WNDW_LEFT;
+    _board.h = gc::BOARD_WNDW_BOTTOM - gc::BOARD_WNDW_TOP;
     clear();
 }
 
@@ -37,23 +37,10 @@ SDL_Surface* Graphics::loadImage(const std::string &filePath) {
     return (_spriteSheets[filePath]);
 }
 
-void Graphics::blitSurface(SDL_Texture* texture, SDL_Rect* sourceRectangle, SDL_Rect* destinationRectangle) {
-    SDL_RenderCopy(_renderer, texture, sourceRectangle, destinationRectangle);
-    return;
-}
-
 void Graphics::renderCopy(SDL_Texture* texture, const SDL_Rect* sourceRectangle, const SDL_Rect* destinationRectangle, const double angle, const SDL_Point* center) {
     if (SDL_RenderCopyEx(_renderer, texture, sourceRectangle, destinationRectangle, angle, center, SDL_RendererFlip::SDL_FLIP_NONE)) {
         std::cout << SDL_GetError() << std::endl;
     }
-    return;
-}
-
-void Graphics::flip() {
-    #ifdef DEBUG_GRAPHICS
-        //std::cout << "Graphics::flip()" << std::endl;
-    #endif
-    SDL_RenderPresent(_renderer);
     return;
 }
 
@@ -64,8 +51,6 @@ void Graphics::clear() {
     //Set Board Color
     SDL_SetRenderDrawColor(_renderer, gc::COLOR_BOARD_R, gc::COLOR_BOARD_G, gc::COLOR_BOARD_B, gc::COLOR_BOARD_A);
     SDL_RenderFillRect(_renderer, &_board);
-    //Render
-    //SDL_RenderPresent(_renderer);
     return;
 }
 
@@ -73,5 +58,5 @@ SDL_Renderer* Graphics::getRenderer() const {
     return(_renderer);
 }
 
-} //graphics
+} //namespace graphics
 

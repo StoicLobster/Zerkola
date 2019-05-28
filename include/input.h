@@ -1,25 +1,49 @@
 #ifndef ZERKOLA_INCLUDE_INPUT_H
 #define ZERKOLA_INCLUDE_INPUT_H
-
+//Includes
 #include <map>
 #include <SDL2/SDL.h>
 
 namespace input {
-class Input {
-public:
-    void beginNewFrame(); //gets called at the beginning of every new frame to reset irrelevant keys
-    void keyUpEvent(const SDL_Event& event); //what happens when key is released
-    void keyDownEvent(const SDL_Event& event); //what happens when key is pressed
 
-    bool wasKeyPressed(const SDL_Scancode& key); //checks if certain key was pressed during frame
-    bool wasKeyReleased(const SDL_Scancode& key); //checks if certain key was released during frame
-    bool isKeyHeld(const SDL_Scancode& key); //checks if certain key is currently being held
+/* Keys pressed this frame */
+class Input {
+
+/*=== START PRIVATE ===*/
 private:
-    std::map<SDL_Scancode, bool> _heldKeys; //keys that have been held
-    std::map<SDL_Scancode, bool> _pressedKeys; //keys that have been pressed
-    std::map<SDL_Scancode, bool> _releasedKeys; //keys that have been released
-    //TODO: Add mouse input?
-};
-}
+    /* Keys that have been held this frame */
+    std::map<SDL_Scancode, bool> _heldKeys;
+
+    /* Keys that have been pressed this frame */
+    std::map<SDL_Scancode, bool> _pressedKeys;
+
+    /* Keys that have been released this frame */
+    std::map<SDL_Scancode, bool> _releasedKeys;
+/*=== END PRIVATE ===*/
+
+/*=== START PUBLIC ===*/
+public:
+    /* Called at the beginning of every new frame to reset keys */
+    void beginNewFrame();
+
+    /* Event when key is released */
+    void keyUpEvent(const SDL_Event& event);
+
+    /* Event when key is pressed */
+    void keyDownEvent(const SDL_Event& event);
+
+    /* Checks if certain key was pressed during this frame */
+    inline bool wasKeyPressed(const SDL_Scancode& key) { return(_pressedKeys[key]); };
+
+    /* Checks if certain key was released during this frame */
+    inline bool wasKeyReleased(const SDL_Scancode& key) { return(_releasedKeys[key]); };
+
+    /* Checks if certain key is currently being held this frame */
+    inline bool isKeyHeld(const SDL_Scancode& key) { return(_heldKeys[key]); };
+/*=== END PUBLIC ===*/
+
+}; //class Input
+
+} //namespace input
 
 #endif //ZERKOLA_INCLUDE_INPUT_H

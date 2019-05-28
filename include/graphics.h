@@ -10,40 +10,52 @@
 
 //#define DEBUG_GRAPHICS
 
-struct SDL_Window;
-struct SDL_Renderer; //Dont need to include SDL since pointers are used below.
-
 namespace graphics {
 
+/* Window, game board, and renderer  */
 class Graphics {
+
+/*=== START PRIVATE ===*/
 private:
-    SDL_Window* _window; //Where game is drawn to
-    SDL_Renderer* _renderer; //What does the drawing to the window
+    /* Window where game is drawn */
+    SDL_Window* _window;
+
+    /* Renderer which performs drawing on window */
+    SDL_Renderer* _renderer;
+
+    /* Map of sprites used */
     std::map<std::string, SDL_Surface*> _spriteSheets;
-    SDL_Rect _board; //Board is window less the margins. This is where game is played
-    
+
+    /* Board where game is played (within window) */
+    SDL_Rect _board;
+/*=== END PRIVATE ===*/
+
+/*=== START PUBLIC ===*/
 public:
     Graphics();
     ~Graphics();
+    /* Load image into _spriteSheets map if it doesnt exist already */
+    SDL_Surface* loadImage(const std::string& filePath);
 
-    SDL_Surface* loadImage(const std::string& filePath); //load image into _spriteSheets map if it doesnt already exist
-
-    void blitSurface(SDL_Texture* source, SDL_Rect* sourceRectangle, SDL_Rect* destinationRectangle); //draws SDL_Texture to screen. Not used
-    /* Render Copy
-     * Uses SDL_RenderCopyEx to render and rotate the given texture
-     */    
+    /* Uses SDL_RenderCopyEx to render and rotate the given texture */    
     void renderCopy(
         SDL_Texture* texture, 
         const SDL_Rect* sourceRectangle, 
         const SDL_Rect* destinationRectangle, 
         const double angle, 
         const SDL_Point* center);
-    void flip(); //renders everything to screen
-    void clear(); //clears the screen
+    /* Renders everything to screen */
+    inline void flip() { SDL_RenderPresent(_renderer); };
 
-    SDL_Renderer* getRenderer() const; //Return _renderer
-};
+    /* Resets the screen to its init state */
+    void clear();
 
-} //graphics
+    /* Return _renderer */
+    SDL_Renderer* getRenderer() const;
+/*=== END PUBLIC ===*/
+
+}; //class Graphics
+
+} //namespace graphics
 
 #endif //ZERKOLA_INCLUDE_GRAPHICS_H_

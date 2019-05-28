@@ -8,15 +8,20 @@
 
 namespace sprite {
 
-Sprite::Sprite() {}; //TODO
+Sprite::Sprite() {};
 
 Sprite::~Sprite() {}
 
-Sprite::Sprite(graphics::Graphics* graphics_ptr, const std::string &filePath, int sourceX, int sourceY, int width, int height):
-    _graphics_ptr(graphics_ptr),
-    _upper_left_corner(0,0),
-    _dir(0,0),
-    _center_of_rotation(0,0)    
+Sprite::Sprite(graphics::Graphics* graphics_ptr, 
+    const std::string &filePath, 
+    int sourceX, 
+    int sourceY, 
+    int width, 
+    int height):
+_graphics_ptr(graphics_ptr),
+_upper_left_corner(0,0),
+_dir(0,0),
+_center_of_rotation(0,0)    
 {
     #ifdef DEBUG_SPRITE 
         std::cout << "===== Sprite Constructor Called =====" << std::endl;
@@ -68,7 +73,7 @@ void Sprite::draw(bool verbose) const {
     assert((UL_y + height) <= gc::WINDOW_HEIGHT);
     SDL_Rect destinationRectangle = {UL_x, UL_y, width, height};
     //Determine angle from global Y_2D (pointing up) to _dir CW
-    Eigen::Vector2d v1(gc::Y_2D.cast<double>());
+    Eigen::Vector2d v1(gc::Y_2D_PHYS.cast<double>());
     Eigen::Vector2d v2(_dir.cast<double>());
     double theta = geo::AngBetweenVecs(v1, v2, gc::AngularDirections::CW)*geo::RAD_TO_DEG; //Note angle must be in degrees
     if (verbose) {
