@@ -61,6 +61,12 @@ public:
 
     /* Returns ID */
     inline int ID() const { return(_ID); };
+
+    /* Return position of center of missile */
+    inline Eigen::Vector2d center() const { return(_center); };
+
+    /* Return if collision is active for missile */
+    inline bool collision_active() const { return(_collision_active); };
 /*=== END PUBLIC ===*/
 
 }; //class Missile

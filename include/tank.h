@@ -105,6 +105,9 @@ protected:
     
     /* Executes this frame's turn. Tank is allowed one set of move commands and one fire command. Pure virtual function */
     virtual void _turn(double dt_ms) = 0;
+
+    /* Returns TRUE if a missile collided with the tank */
+    bool _collisionCheck() const;
 /*=== END PROTECTED ===*/
 
 /*=== START PUBLIC ===*/
@@ -115,8 +118,8 @@ public:
         gc::PlayerColor player_color, 
         std::list<missile::Missile*>* missiles_ptr);
 
-    /* Takes tank turn and does housekeeping */
-    void updateTank(double dt_ms);
+    /* Takes tank turn, does housekeeping, and returns TRUE if a missile collides with the tank */
+    bool update(double dt_ms);
 
     /* Draws all parts of the tank */
     void drawTank();

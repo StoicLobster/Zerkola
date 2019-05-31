@@ -369,7 +369,7 @@ void Tank::drawTank() {
     return;
 }
 
-void Tank::updateTank(double dt_ms) {
+bool Tank::update(double dt_ms) {
     #ifdef DEBUG_TANK 
         std::cout << "Tank::update()" << std::endl;
     #endif
@@ -381,7 +381,16 @@ void Tank::updateTank(double dt_ms) {
     this->_turn(dt_ms);
     //Set pose in base class
     this->_setPose();
-    return;
+    return(_collisionCheck());
+}
+
+bool Tank::_collisionCheck() const {
+    Eigen::Vector2d tank_center(_center.x(),_center.y());
+    for (auto missile : (*_missiles_ptr)) {
+        double dist = (tank_center - missile->center()).norm();
+        if (missile->collision_active() && (dist <= (gc::TANK_RAD_COL + gc::MISSILE_RAD_COL))) return(true);
+    }
+    return(false);
 }
 
 }

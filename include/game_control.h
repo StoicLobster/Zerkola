@@ -153,7 +153,7 @@ const double MISSILE_RAD_COL = 3;
 /* [m/s] Missile speed */
 const double MISSLE_SPEED = 150;
 /* [m] Distance missile must travel before it becomes active (can cause collision) */
-const long double MISSILE_ACTIVE_DIST = 10;
+const long double MISSILE_ACTIVE_DIST = 50;
 /* [m] Maximum distance a missile can travel before being deleted */
 const long double MISSILE_MAX_DIST = 99999999;
 /* [m] Tolerance distance to boundary for missile ricochet. Required to account for floating point error */
@@ -179,8 +179,10 @@ const double RR_FRC = 500;
  * 1: BLUE
  */
 typedef enum PlayerColor {
+	PLAYER_COLOR_NONE,
 	RED,
-	BLUE
+	BLUE,
+	PLAYER_COLOR_MAX
 } PlayerColor;
 
 /* Player type (computer or human)
@@ -189,10 +191,11 @@ typedef enum PlayerColor {
  * 2: COMPUTER_1_SKYNET
  */
 typedef enum PlayerType {
-	NONE,
+	PLAYER_TYPE_NONE,
 	COMPUTER_R2D2,
 	COMPUTER_SKYNET,
-	HUMAN
+	HUMAN,
+	PLAYER_TYPE_MAX
 } PlayerType;
 
 /* Map of computer player types and setup messages */

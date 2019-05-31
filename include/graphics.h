@@ -52,6 +52,15 @@ public:
 
     /* Return _renderer */
     SDL_Renderer* getRenderer() const;
+
+    /* Hide window */
+    inline void hideWindow() const { SDL_HideWindow(_window); };
+
+    /* Show window */
+    inline void showWindow() const { SDL_ShowWindow(_window); };
+
+    /* Raise window above others and set input focus */
+    inline void raiseWindow() const { SDL_RaiseWindow(_window); };
 /*=== END PUBLIC ===*/
 
 }; //class Graphics

@@ -37,6 +37,9 @@ private:
     /* Elapsed time this frame [ms] */
     double _elapsedTime;
 
+    /* Color of player who won the game */
+    gc::PlayerColor _winningPlayer;
+
     /* Setup game. Runs once at the start */
     bool setup();
 
@@ -48,6 +51,9 @@ private:
 
     /* Draw graphics (render) */
     void draw();
+
+    /* Ends the game and displays a message for the winning player */
+    void end();
 /*=== END PRIVATE ===*/    
 
 /*=== START PUBLIC ===*/

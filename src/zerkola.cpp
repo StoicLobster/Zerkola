@@ -15,13 +15,17 @@ namespace zerkola {
 Zerkola::Zerkola():
     _graphics(),
     _input(),
-    _event()
+    _event(),
+    _winningPlayer(gc::PlayerColor::PLAYER_COLOR_NONE)
 {
     bool success = setup(); //setup game
     if (success) loop(); //begin game
 }
 
 Zerkola::~Zerkola() {
+    //Delete tanks
+    delete _tank_red;
+    delete _tank_blue;
     //Technically Tank class allocates missile memory, but cleanup makes more sense here as Zerkola is the owner of missile list
     for (auto missile : _missiles) {
         delete missile;
@@ -37,9 +41,21 @@ bool Zerkola::setup() {
     }
     std::cout << std::endl;
     int inpt = 0; //Human
-    while (gc::ComputerPlayerList.find(static_cast<gc::PlayerType>(inpt)) == gc::ComputerPlayerList.end()) {
-        std::cout << "Please select a computer player number from the list." << std::endl;
+    bool valid_inpt = false;
+    while (!valid_inpt) {
+        std::cout << "Selection: ";
         std::cin >> inpt;
+        if (std::cin.fail() || 
+            (inpt <= gc::PlayerType::PLAYER_TYPE_NONE) || 
+            (inpt >= gc::PlayerType::PLAYER_TYPE_MAX) || 
+            gc::ComputerPlayerList.find(static_cast<gc::PlayerType>(inpt)) == gc::ComputerPlayerList.end()) {
+            //Invalid Input
+            std::cout << "Please enter an integer selection from the list." << std::endl;
+            // clear error state
+            std::cin.clear();
+            // discard 'bad' character(s)
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        } else valid_inpt = true;        
     }
     gc::PlayerType comp_player = static_cast<gc::PlayerType>(inpt);
     //Instantiate players
@@ -56,13 +72,15 @@ bool Zerkola::setup() {
             break;
     }
     std::cout << "GLHF!" << std::endl;
+    _graphics.showWindow();
+    _graphics.raiseWindow();
     return(true);
 }
 
 void Zerkola::loop() {         
     int last_update_time_ms = SDL_GetTicks(); //[ms] time since SDL_Init was called
     //Start game loop
-    while (true) {
+    while (_winningPlayer == gc::PlayerColor::PLAYER_COLOR_NONE) {
         //Reset keys
         _input.beginNewFrame();
 
@@ -102,6 +120,7 @@ void Zerkola::loop() {
         double delay_duration = std::max(0.0, static_cast<double>(gc::MAX_FRAME_TIME_MS) - _elapsedTime);
         SDL_Delay(delay_duration);
     }
+    end();
 }
 
 void Zerkola::draw() {
@@ -124,11 +143,23 @@ void Zerkola::draw() {
 }
 
 void Zerkola::update() {    
-    _tank_blue->updateTank(_elapsedTime);
-    _tank_red->updateTank(_elapsedTime);
+    if (_tank_blue->update(_elapsedTime)) {
+        _winningPlayer = gc::PlayerColor::RED;
+        return;
+    } 
+    if (_tank_red->update(_elapsedTime)) {
+        _winningPlayer = gc::PlayerColor::BLUE;
+        return;
+    }
     for (auto missile : _missiles) {
         missile->updateMissile(_elapsedTime);
     }
+    return;
+}
+
+void Zerkola::end() {
+    if (_winningPlayer == gc::PlayerColor::BLUE) std::cout << "You won! Yay." << std::endl;
+    else std::cout << "You lost. Boo." << std::endl;
     return;
 }
 
