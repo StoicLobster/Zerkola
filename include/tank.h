@@ -64,7 +64,7 @@ private:
     short _ammo;
 
     /* Controls if each of these actions was taken this turn */
-    bool _fire_this_turn, _move_this_turn; //
+    bool _fire_this_turn, _move_this_turn;
 
     /* Cleanup when animation over, not currently used */
     void _animationDone(std::string currentAnimation);
@@ -73,7 +73,7 @@ private:
     void _setupAnimations();
 
     /* Resets turn */
-    inline void _resetTurn() {_fire_this_turn = false; _move_this_turn = false; };
+    void _resetTurn();
 
     /* Integration (Trapezoidal)
     * Solves for state x_k+1 (x_kp1)

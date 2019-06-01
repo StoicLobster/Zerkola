@@ -54,7 +54,10 @@ _slip(false),
 _ammo(gc::MAX_MISSILES_PER_PLAYER),
 _fire_this_turn(false),
 _move_this_turn(false),
-_missiles_ptr(missiles_ptr)
+_missiles_ptr(missiles_ptr),
+_translate_body_cmnd(gc::LinearDirections::LINEAR_NONE),
+_rotate_body_cmnd(gc::AngularDirections::ANGULAR_NONE),
+_rotate_turret_cmnd(gc::AngularDirections::ANGULAR_NONE)
 {
     //Set starting position in game
     double start_x, start_y;
@@ -165,7 +168,7 @@ void Tank::_move(double dt_ms,
     #endif
     
     //Apply linear body motion commands
-    if (translate_body_cmnd == gc::LinearDirections::FORWARD) {
+    if (_translate_body_cmnd == gc::LinearDirections::FORWARD) {
         playAnimation("RollForward");
         _translate_body_frc_cmnd += std::min(gc::TANK_BODY_FRWD_FRC_RATE_LIMIT, (gc::TANK_BODY_MAX_FRWD_FRC - _translate_body_frc_cmnd)/dt_s)*dt_s;
     } else if (translate_body_cmnd == gc::LinearDirections::REVERSE) {
@@ -369,6 +372,15 @@ void Tank::drawTank() {
     return;
 }
 
+void _resetTurn() {
+    _fire_this_turn = false; 
+    _move_this_turn = false; 
+    _translate_body_cmnd = gc::LinearDirections::LINEAR_NONE;
+    _rotate_body_cmnd = gc::AngularDirections::ANGULAR_NONE;
+    _rotate_turret_cmnd = gc::AngularDirections::ANGULAR_NONE;
+    return;
+}
+
 bool Tank::update(double dt_ms) {
     #ifdef DEBUG_TANK 
         std::cout << "Tank::update()" << std::endl;
@@ -376,11 +388,13 @@ bool Tank::update(double dt_ms) {
     //Update animatedSprite
     animated_sprite::AnimatedSprite::update(dt_ms);
     //Reset turn
-    this->_resetTurn();
+    _resetTurn();
     //Take turn
-    this->_turn(dt_ms);
+    _turn(dt_ms);
+    //Arbitrate move command
+    _move(dt_ms, translate_body_cmnd, rotate_body_cmnd, rotate_turret_cmnd);
     //Set pose in base class
-    this->_setPose();
+    _setPose();
     return(_collisionCheck());
 }
 

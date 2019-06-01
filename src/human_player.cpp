@@ -17,9 +17,6 @@ void HumanPlayer::_turn(double dt_ms) {
     #ifdef DEBUG_TANK 
         std::cout << "Tank::_turn()" << std::endl;
     #endif
-    gc::LinearDirections translate_body_cmnd = gc::LinearDirections::LINEAR_NONE;
-    gc::AngularDirections rotate_body_cmnd = gc::AngularDirections::ANGULAR_NONE;
-    gc::AngularDirections rotate_turret_cmnd = gc::AngularDirections::ANGULAR_NONE;
     //Parse input and execute move / fire
     if (_input_ptr->wasKeyPressed(SDL_SCANCODE_SPACE)) {
         //Fire a Missile
@@ -43,8 +40,6 @@ void HumanPlayer::_turn(double dt_ms) {
     } else if (_input_ptr->wasKeyPressed(SDL_SCANCODE_A) || _input_ptr->isKeyHeld(SDL_SCANCODE_A)) {
         rotate_turret_cmnd = gc::AngularDirections::CCW;
     }
-    _move(dt_ms, translate_body_cmnd, rotate_body_cmnd, rotate_turret_cmnd);
-
     
     return;
 }

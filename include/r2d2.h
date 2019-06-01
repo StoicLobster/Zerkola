@@ -12,7 +12,7 @@ class R2D2 : public tank::Tank {
 
 /*=== START PRIVATE ===*/
 private:
-    /* R2D2 turn. Simple strategy */
+    /* R2D2 turn. Policy based strategy */
     void _turn(double dt_ms);
 /*=== END PRIVATE ===*/
 
