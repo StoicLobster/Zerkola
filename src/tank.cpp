@@ -391,8 +391,8 @@ bool Tank::update(double dt_ms) {
     _resetTurn();
     //Take turn
     _turn(dt_ms);
-    //Arbitrate move command
-    _move(dt_ms, translate_body_cmnd, rotate_body_cmnd, rotate_turret_cmnd);
+    //Execute move command
+    _move(dt_ms);
     //Set pose in base class
     _setPose();
     return(_collisionCheck());

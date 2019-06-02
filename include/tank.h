@@ -93,17 +93,28 @@ private:
 protected:
     /* Pointer to list of all missiles currently in game */
     std::list<missile::Missile*>* _missiles_ptr;
+    
+    /* Motion command for linear body direction. Used in _move() */
+    gc::LinearDirections _translate_body_cmnd;
+
+    /* Motion command for angular direction. Used in _move() */
+    gc::AngularDirections _rotate_body_cmnd;
+
+    /* Moion command for angular turret direction. Used in _move() */
+    gc::AngularDirections _rotate_turret_cmnd;
 
     /* Moves the tank given semantic commands */
-    void _move(double dt_ms, 
-        gc::LinearDirections translate_body_cmnd, 
-        gc::AngularDirections rotate_body_cmnd,
-        gc::AngularDirections rotate_turret_cmnd);
+    void _move(double dt_ms);
 
     /* Fires a missile (if able) and apends it to the list */
     void _fire(std::list<missile::Missile*>* missiles);
     
-    /* Executes this frame's turn. Tank is allowed one set of move commands and one fire command. Pure virtual function */
+    /* Executes this frame's turn. Tank is allowed one set of move commands and one fire command. Pure virtual function 
+     * Output shouild be the various motion commands:
+     * _translate_body_cmnd
+     * _rotate_body_cmnd
+     * _rotate_turret_cmnd
+     */
     virtual void _turn(double dt_ms) = 0;
 
     /* Returns TRUE if a missile collided with the tank */

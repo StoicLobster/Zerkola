@@ -54,7 +54,7 @@ void MinDistLinePoint(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am, cons
  * Circle is defined by point C0 and a radius r
  * Returns minimum distance (lambda) to closest point on circle (I)
  */
-bool LineCircleIntersection(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am, const Eigen::Vector2d& C0, double r, double& lambda, Eigen::Vector2d& I);
+bool LineCircleIntersection(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am, const Eigen::Vector2d& C0, double r, double& lambda, Eigen::Vector2d& I, bool verbose=false);
 
 } //namespace geo
 

@@ -57,16 +57,17 @@ void MinDistLinePoint(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am, cons
     return;
 }
 
-bool LineCircleIntersection(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am, const Eigen::Vector2d& C0, double r, double& lambda, Eigen::Vector2d& I) {
+bool LineCircleIntersection(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am, const Eigen::Vector2d& C0, double r, double& lambda, Eigen::Vector2d& I, bool verbose) {
+    if (verbose) std::cout << "LineCircleIntersection()" << std::endl;
     // Must normalize Am in order for lambda to be distance
     Eigen::Vector2d Am_norm = Am.normalized();
-    std::cout << "Am_norm: (" << Am_norm.x() << ", " << Am_norm.y() << ")" << std::endl;
+    if (verbose) std::cout << "Am_norm: (" << Am_norm.x() << ", " << Am_norm.y() << ")" << std::endl;
     //Get minimum distance from line to point
     double min_dist = r + 1;
     Eigen::Vector2d K;
     MinDistLinePoint(A0,Am_norm,C0,min_dist,K);
     min_dist = abs(min_dist);
-    std::cout << "min_dist: " << min_dist << ", K: (" << K.x() << ", " << K.y() << ")" << std::endl;
+    if (verbose) std::cout << "min_dist: " << min_dist << ", K: (" << K.x() << ", " << K.y() << ")" << std::endl;
     if (min_dist > r) return(false);
     //Find point on circle that intersects with line <A0, Am> and is closest to A0
     //Use parametric equation for circle and solve system of equations (requires quadratic formula)
@@ -74,7 +75,7 @@ bool LineCircleIntersection(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am
     a = pow(Am_norm.x(),2.0) + pow(Am_norm.y(),2.0);
     b = 2*(Am_norm.x()*(A0.x()-C0.x()) + Am_norm.y()*(A0.y()-C0.y()));
     c = pow((A0.x()-C0.x()),2.0) + pow((A0.y()-C0.y()),2.0) - pow(r,2.0);
-    std::cout << "a: " << a << ", b: " << b << ", c: " << c << std::endl;
+    if (verbose) std::cout << "a: " << a << ", b: " << b << ", c: " << c << std::endl;
     assert(a != 0);
     qA = -b/(2*a);
     q_rad = b*b - 4*a*c;
@@ -82,7 +83,7 @@ bool LineCircleIntersection(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am
     qB = sqrt(q_rad)/(2*a);
     r1 = qA + qB;
     r2 = qA - qB;
-    std::cout << "qA: " << qA << ", q_rad: " << q_rad << ", qB: " << qB << ", r1: " << r1 << ", r2: " << r2 << std::endl;
+    if (verbose) std::cout << "qA: " << qA << ", q_rad: " << q_rad << ", qB: " << qB << ", r1: " << r1 << ", r2: " << r2 << std::endl;
     //Select root which is closest to A0 (smaller)
     if (r1 < r2) lambda = r1;
     else lambda = r2;

@@ -12,8 +12,20 @@ class R2D2 : public tank::Tank {
 
 /*=== START PRIVATE ===*/
 private:
+    /* Enemy target */
+    tank::Tank* _enemyTarget;
+
     /* R2D2 turn. Policy based strategy */
     void _turn(double dt_ms);
+
+    /* Returns TRUE if tank is in danger of a missile strike */
+    bool _dangerCheck();
+
+    /* Moves the tank away from danger */
+    void _evasiveManeuver();
+
+    /* Orients the tank towrads _enemyTarget in order to fire */
+    void _aggressiveManeuver();
 /*=== END PRIVATE ===*/
 
 /*=== START PUBLIC ===*/
@@ -21,6 +33,9 @@ public:
     R2D2();
     ~R2D2();
     R2D2(graphics::Graphics* graphics_ptr, gc::PlayerColor player_color, std::list<missile::Missile*>* missiles_ptr);
+
+    /* Set the enemy target */
+    inline void setTarget(tank::Tank* enemy_target) { _enemyTarget = enemy_target; };
 /*=== END PUBLIC ===*/
 
 }; //class R2D2
