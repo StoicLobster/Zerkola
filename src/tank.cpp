@@ -130,10 +130,7 @@ void Tank::_setPose() {
     return;
 }
 
-void Tank::_move(double dt_ms, 
-    gc::LinearDirections translate_body_cmnd, 
-    gc::AngularDirections rotate_body_cmnd,
-    gc::AngularDirections rotate_turret_cmnd) {
+void Tank::_move(double dt_ms) {
     #ifdef DEBUG_TANK 
         std::cout << "Tank::_move()" << std::endl;
     #endif
@@ -142,7 +139,6 @@ void Tank::_move(double dt_ms,
     _move_this_turn = true;
     if (dt_ms == 0.0) return;
     double dt_s = dt_ms/1000.0;
-    playAnimation("Idle");
     #ifdef DEBUG_TANK 
         std::cout << "dt_ms: " << dt_ms << std::endl;
         std::cout << "dt_s: " << dt_s << std::endl;
@@ -171,17 +167,17 @@ void Tank::_move(double dt_ms,
     if (_translate_body_cmnd == gc::LinearDirections::FORWARD) {
         playAnimation("RollForward");
         _translate_body_frc_cmnd += std::min(gc::TANK_BODY_FRWD_FRC_RATE_LIMIT, (gc::TANK_BODY_MAX_FRWD_FRC - _translate_body_frc_cmnd)/dt_s)*dt_s;
-    } else if (translate_body_cmnd == gc::LinearDirections::REVERSE) {
+    } else if (_translate_body_cmnd == gc::LinearDirections::REVERSE) {
         playAnimation("RollBackward");
         _translate_body_frc_cmnd += std::max(gc::TANK_BODY_REV_FRC_RATE_LIMIT, (gc::TANK_BODY_MAX_REV_FRC - _translate_body_frc_cmnd)/dt_s)*dt_s;
     }
 
     //Apply rotational body motion commands
     _rotate_body_torque_cmnd = 0;
-    if (rotate_body_cmnd == gc::AngularDirections::CCW) {
+    if (_rotate_body_cmnd == gc::AngularDirections::CCW) {
         _rotate_body_torque_cmnd = gc::TANK_BODY_ROT_TRQ_CMND;
         //TODO playAnimation()
-    } else if (rotate_body_cmnd == gc::AngularDirections::CW) {
+    } else if (_rotate_body_cmnd == gc::AngularDirections::CW) {
         _rotate_body_torque_cmnd = -1*gc::TANK_BODY_ROT_TRQ_CMND;
         //TODO playAnimation()
     }
@@ -308,8 +304,8 @@ void Tank::_move(double dt_ms,
 
     /*** Rotate Tank Turret ***/
     _rotate_turret_spd_cmnd = 0;
-    if (rotate_turret_cmnd == gc::AngularDirections::CCW) _rotate_turret_spd_cmnd = gc::TANK_TURRET_ROT_SPD*dt_s;
-    else if (rotate_turret_cmnd == gc::AngularDirections::CW) _rotate_turret_spd_cmnd = -1 * gc::TANK_TURRET_ROT_SPD*dt_s;
+    if (_rotate_turret_cmnd == gc::AngularDirections::CCW) _rotate_turret_spd_cmnd = gc::TANK_TURRET_ROT_SPD*dt_s;
+    else if (_rotate_turret_cmnd == gc::AngularDirections::CW) _rotate_turret_spd_cmnd = -1 * gc::TANK_TURRET_ROT_SPD*dt_s;
     #ifdef DEBUG_TANK 
         std::cout << "_rotate_turret_spd_cmnd: " << _rotate_turret_spd_cmnd << std::endl;
     #endif
@@ -372,7 +368,7 @@ void Tank::drawTank() {
     return;
 }
 
-void _resetTurn() {
+void Tank::_resetTurn() {
     _fire_this_turn = false; 
     _move_this_turn = false; 
     _translate_body_cmnd = gc::LinearDirections::LINEAR_NONE;
@@ -390,7 +386,7 @@ bool Tank::update(double dt_ms) {
     //Reset turn
     _resetTurn();
     //Take turn
-    _turn(dt_ms);
+    _turn();
     //Execute move command
     _move(dt_ms);
     //Set pose in base class

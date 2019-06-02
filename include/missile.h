@@ -65,6 +65,9 @@ public:
     /* Return position of center of missile */
     inline Eigen::Vector2d center() const { return(_center); };
 
+    /* Return direction of missile */
+    inline Eigen::Vector2d dir() const { return(_dir); };
+
     /* Return if collision is active for missile */
     inline bool collision_active() const { return(_collision_active); };
 /*=== END PUBLIC ===*/

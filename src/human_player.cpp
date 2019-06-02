@@ -13,7 +13,7 @@ _input_ptr(input_ptr)
 
 HumanPlayer::~HumanPlayer() {};
 
-void HumanPlayer::_turn(double dt_ms) {
+void HumanPlayer::_turn() {
     //Parse input and execute move / fire
     if (_input_ptr->wasKeyPressed(SDL_SCANCODE_SPACE)) {
         //Fire a Missile

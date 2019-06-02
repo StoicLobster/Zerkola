@@ -16,16 +16,19 @@ private:
     tank::Tank* _enemyTarget;
 
     /* R2D2 turn. Policy based strategy */
-    void _turn(double dt_ms);
+    void _turn();
 
     /* Returns TRUE if tank is in danger of a missile strike */
-    bool _dangerCheck();
+    bool _dangerCheck() const;
 
     /* Moves the tank away from danger */
     void _evasiveManeuver();
 
     /* Orients the tank towrads _enemyTarget in order to fire */
     void _aggressiveManeuver();
+
+    /* Returns TRUE if any missile would collide with tank on current trajectory */
+    bool _directMissileHitCheck() const;
 /*=== END PRIVATE ===*/
 
 /*=== START PUBLIC ===*/

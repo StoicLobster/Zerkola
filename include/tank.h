@@ -115,7 +115,7 @@ protected:
      * _rotate_body_cmnd
      * _rotate_turret_cmnd
      */
-    virtual void _turn(double dt_ms) = 0;
+    virtual void _turn() = 0;
 
     /* Returns TRUE if a missile collided with the tank */
     bool _collisionCheck() const;
@@ -134,6 +134,9 @@ public:
 
     /* Draws all parts of the tank */
     void drawTank();
+
+    /* Return center position of tank */
+    inline Eigen::Vector3d center() const { return(_center); };
 /*=== END PUBLIC ===*/
 
 }; //class Tank

@@ -14,7 +14,7 @@ private:
     input::Input* _input_ptr;
 
     /* Human player turn. Reads inputs and distributes commands */
-    void _turn(double dt_ms);
+    void _turn();
 /*=== END PRIVATE ===*/
 
 /*=== START PUBLIC ===*/

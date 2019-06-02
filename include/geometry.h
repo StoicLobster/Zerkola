@@ -10,6 +10,12 @@ namespace geo {
 /* Convert radians to degrees */
 const double RAD_TO_DEG = 180.0/M_PI;
 
+/* Cast 3D Eigen vector to 2D (d)*/
+inline Eigen::Vector2d Cast3D2Dd(Eigen::Vector3d vec_3) { return(Eigen::Vector2d(vec_3.x(),vec_3.y())); };
+
+/* Cast 3D Eigen vector to 2D (i)*/
+inline Eigen::Vector2i Cast3D2Dd(Eigen::Vector3i vec_3) { return(Eigen::Vector2i(vec_3.x(),vec_3.y())); };
+
 /* CrossProduct2D()
  * 2D cross product because for some dumb reason Eigen doesnt do that...
  */
