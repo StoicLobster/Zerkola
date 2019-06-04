@@ -4,6 +4,7 @@
 #include <Eigen/Dense>
 #include <list>
 #include <unordered_map>
+#include <cassert>
 
 /* Game Control
  * Defines constants used throughout the game.
@@ -12,25 +13,29 @@
  */
 namespace gc {
 
+/*=== WINDOW ===*/
+
+const int WINDOW_WIDTH = 1024;
+const int WINDOW_HEIGHT = 768;
+const int WINDOW_SCREEN_LOCATION_X = 400;
+const int WINDOW_SCREEN_LOCATION_Y = 300;
+const int WINDOW_MARGIN = 50;
+
 /*=== GAME DEFINITION ===*/
 
 const char* const GAME_TITLE = "Zerkola";
 const int FPS = 60;
 /* Max allowed duration of a frame [ms] */
 const int MAX_FRAME_TIME_MS = 1000 / FPS;
-const int RED_PLAYER_START_POS_X_PHYS = 200;
-const int RED_PLAYER_START_POS_Y_PHYS = 240;
-const int BLUE_PLAYER_START_POS_X_PHYS = 440;
-const int BLUE_PLAYER_START_POS_Y_PHYS = 240;
+const int PLAYER_X_START_OFFST_PHYS = 200;
+const int PLAYER_Y_START_PHYS = -384;
+/* Blue player always starts on left */
+const int BLUE_PLAYER_START_POS_X_PHYS = WINDOW_MARGIN + PLAYER_X_START_OFFST_PHYS;
+const int BLUE_PLAYER_START_POS_Y_PHYS = PLAYER_Y_START_PHYS;
+/* Red player always starts on right */
+const int RED_PLAYER_START_POS_X_PHYS = WINDOW_WIDTH - WINDOW_MARGIN - PLAYER_X_START_OFFST_PHYS;
+const int RED_PLAYER_START_POS_Y_PHYS = PLAYER_Y_START_PHYS;
 const short MAX_MISSILES_PER_PLAYER = 10;
-
-/*=== WINDOW ===*/
-
-const int WINDOW_WIDTH = 640;
-const int WINDOW_HEIGHT = 480;
-const int WINDOW_SCREEN_LOCATION_X = 400;
-const int WINDOW_SCREEN_LOCATION_Y = 300;
-const int WINDOW_MARGIN = 50;
 
 /*=== BOARD SIZE (WINDOW COORDS) ===*/
 
@@ -111,29 +116,33 @@ const int TANK_TURRET_CENTER_RELATIVE_TO_UL_X(6), TANK_TURRET_CENTER_RELATIVE_TO
 /*=== TANK DYNAMICS ===*/
 
 /* [m] Radius of collision for tank */
-const double TANK_RAD_COL = 30;
+const double TANK_RAD_COL = 10;
 /* [kg] Mass of tank */
 const double TANK_MASS = 1000;
 /* [kg*m^2] Moment of inertia of tank about z axis */
 const double TANK_MOMENT_OF_INERTIA_Z = 500;
-/* [N/s] Force rate limit for a forward move command */
-const double TANK_BODY_FRWD_FRC_RATE_LIMIT = 2000;
-/* [N/s] Force rate limit for a reverse move command */
-const double TANK_BODY_REV_FRC_RATE_LIMIT = -5000;
-/* [N*m] Torque for a rotate command */
-const double TANK_BODY_ROT_TRQ_CMND = 2500;
-/* [deg/s] Angular rotation speed of tank turret when commanded */
-const double TANK_TURRET_ROT_SPD = 50;
 /* [N] Maximum forward force command */
-const double TANK_BODY_MAX_FRWD_FRC = 6000;
+const double TANK_BODY_MAX_FRWD_FRC = 20'000;
+/* [N] Braking force command */
+const double TANK_BODY_BRK_FRC = -100'000;
 /* [N] Maximum reverse force command */
-const double TANK_BODY_MAX_REV_FRC = -10000;
+const double TANK_BODY_MAX_REV_FRC = -10'000;
+/* [N/s] Force rate limit for a forward move command */
+const double TANK_BODY_FRWD_FRC_RATE_LIMIT = 60'000;
+/* [N/s] Force rate limit for a reverse move command */
+const double TANK_BODY_REV_FRC_RATE_LIMIT = -30'000;
+/* [N*m] Torque for a rotate command */
+const double TANK_BODY_ROT_TRQ_CMND = 3'000;
+/* [deg/s] Angular rotation speed of tank turret when commanded */
+const double TANK_TURRET_ROT_SPD = 75;
 /* [m/s] Maximum longitudinal linear velocity of tank body */
-const double TANK_BODY_MAX_LONG_VEL = 30;
+const double TANK_BODY_MAX_LONG_VEL = 80;
 /* [m/s] Minimum longitudinal linear velocity of tank body */
-const double TANK_BODY_MIN_LONG_VEL = -10;
+const double TANK_BODY_MIN_LONG_VEL = -60;
 /* [deg] Maximum angle (+/-) that turret can make with body direction */
 const double TANK_TURRET_MAX_ANG = 130;
+/* [s] Time for tank to shift gears (drive to reverse and vice versa) */
+const double TANK_SHIFT_TIME = 1.5;
 
 /*=== MISSILE SPRITE ===*/
 
@@ -149,7 +158,7 @@ const int MISSILE_CENTER_RELATIVE_TO_UL_X(3), MISSILE_CENTER_RELATIVE_TO_UL_Y(4)
 /*=== MISSILE DYNAMICS ===*/
 
 /* [m] Radius of collision for missile */
-const double MISSILE_RAD_COL = 3;
+const double MISSILE_RAD_COL = 4;
 /* [m/s] Missile speed */
 const double MISSLE_SPEED = 150;
 /* [m] Distance missile must travel before it becomes active (can cause collision) */
@@ -186,16 +195,18 @@ typedef enum PlayerColor {
 } PlayerColor;
 
 /* Player type (computer or human)
- * 0: HUMAN
- * 1: COMPUTER_0_R2D2
- * 2: COMPUTER_1_SKYNET
+ * 0: PLAYER_TYPE_NONE
+ * 1: COMPUTER_R2D2
+ * 2: COMPUTER_SKYNET
+ * 3: HUMAN
+ * 4: NUM_PLAYER_TYPE
  */
 typedef enum PlayerType {
 	PLAYER_TYPE_NONE,
 	COMPUTER_R2D2,
 	COMPUTER_SKYNET,
 	HUMAN,
-	PLAYER_TYPE_MAX
+	NUM_PLAYER_TYPE
 } PlayerType;
 
 /* Map of computer player types and setup messages */
@@ -204,26 +215,47 @@ const std::unordered_map<PlayerType,std::string> ComputerPlayerList {
 };
 
 /* Semantic linear directions
- * 0: LINEAR_NONE
+ * 0: LINEAR_DIRECTION_NONE
  * 1: FORWARD
  * 2: REVERSE
+ * 3: NUM_LINEAR_DIRECTION
  */
-typedef enum LinearDirections {
-	LINEAR_NONE,
+typedef enum LinearDirection {
+	LINEAR_DIRECTION_NONE,
 	FORWARD,
-	REVERSE
-} LinearDirections;
+	BACKWARD,
+	NUM_LINEAR_DIRECTION
+} LinearDirection;
 
 /* Semantic angular directions
- * 0: ANGULAR_NONE
+ * 0: ANGULAR_DIRECTION_NONE
  * 1: CCW (counter clockwise)
  * 2: CW (clockwise)
+ * 3: NUM_ANGULAR_DIRECTION
  */
-typedef enum AngularDirections {
-	ANGULAR_NONE,
+typedef enum AngularDirection {
+	ANGULAR_DIRECTION_NONE,
 	CCW,
-	CW
-} AngularDirections;
+	CW,
+	NUM_ANGULAR_DIRECTION
+} AngularDirection;
+
+/* Semantic tank motion states
+ * 0: STATIONARY
+ * 1: PROPULSION_FORWARD
+ * 2: BRAKING
+ * 3: SHIFTING
+ * 4: REVERSE
+ * 5: NUM_TANK_MOTION_STATE
+ */
+typedef enum TankMotionState {
+	STATIONARY,
+	PROPULSION_FORWARD,
+	BRAKING,
+	SHIFTING,
+	REVERSE,
+	NUM_TANK_MOTION_STATE
+} TankMotionState;
 
 } //namespace gc
 

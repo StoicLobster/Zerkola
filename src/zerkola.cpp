@@ -47,7 +47,7 @@ bool Zerkola::setup() {
         std::cin >> inpt;
         if (std::cin.fail() || 
             (inpt <= gc::PlayerType::PLAYER_TYPE_NONE) || 
-            (inpt >= gc::PlayerType::PLAYER_TYPE_MAX) || 
+            (inpt >= gc::PlayerType::NUM_PLAYER_TYPE) || 
             gc::ComputerPlayerList.find(static_cast<gc::PlayerType>(inpt)) == gc::ComputerPlayerList.end()) {
             //Invalid Input
             std::cout << "Please enter an integer selection from the list." << std::endl;

@@ -66,6 +66,15 @@ private:
     /* Controls if each of these actions was taken this turn */
     bool _fire_this_turn, _move_this_turn;
 
+    /* Current motion state */
+    gc::TankMotionState _motionState;
+
+    /* Timer used to track shifting to / from reverse */
+    double _shiftTimer;
+
+    /* Determine current semantic motion state */
+    void _determineMotionState(double dt_s);
+
     /* Cleanup when animation over, not currently used */
     void _animationDone(std::string currentAnimation);
 
@@ -95,13 +104,13 @@ protected:
     std::list<missile::Missile*>* _missiles_ptr;
     
     /* Motion command for linear body direction. Used in _move() */
-    gc::LinearDirections _translate_body_cmnd;
+    gc::LinearDirection _translate_body_cmnd;
 
     /* Motion command for angular direction. Used in _move() */
-    gc::AngularDirections _rotate_body_cmnd;
+    gc::AngularDirection _rotate_body_cmnd;
 
     /* Moion command for angular turret direction. Used in _move() */
-    gc::AngularDirections _rotate_turret_cmnd;
+    gc::AngularDirection _rotate_turret_cmnd;
 
     /* Moves the tank given semantic commands */
     void _move(double dt_ms);

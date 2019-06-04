@@ -32,14 +32,14 @@ inline double CrossProduct2D(const Eigen::Vector3d& v1, const Eigen::Vector3d& v
  * Angle is in radians
  * Always between -180 and 180 degrees
  */
-double AngBetweenVecs(const Eigen::Vector2d& v1, const Eigen::Vector2d& v2, gc::AngularDirections dir=gc::AngularDirections::CCW);
+double AngBetweenVecs(const Eigen::Vector2d& v1, const Eigen::Vector2d& v2, gc::AngularDirection dir=gc::AngularDirection::CCW);
 
 /* AngBetweenVecs()
  * Returns angle between v1 and v2 in dir (CW or CCW)
  * Angle is in radians
  * Always between -180 and 180 degrees
  */
-double AngBetweenVecs(const Eigen::Vector3d& v1, const Eigen::Vector3d& v2, gc::AngularDirections dir=gc::AngularDirections::CCW);
+double AngBetweenVecs(const Eigen::Vector3d& v1, const Eigen::Vector3d& v2, gc::AngularDirection dir=gc::AngularDirection::CCW);
 
 /* LineLineIntersection()
  * Returns intersection point between two lines

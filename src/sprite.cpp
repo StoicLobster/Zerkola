@@ -75,7 +75,7 @@ void Sprite::draw(bool verbose) const {
     //Determine angle from global Y_2D (pointing up) to _dir CW
     Eigen::Vector2d v1(gc::Y_2D_PHYS.cast<double>());
     Eigen::Vector2d v2(_dir.cast<double>());
-    double theta = geo::AngBetweenVecs(v1, v2, gc::AngularDirections::CW)*geo::RAD_TO_DEG; //Note angle must be in degrees
+    double theta = geo::AngBetweenVecs(v1, v2, gc::AngularDirection::CW)*geo::RAD_TO_DEG; //Note angle must be in degrees
     if (verbose) {
         std::cout << "theta: " << theta << std::endl;
     }

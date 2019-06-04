@@ -29,7 +29,7 @@ void R2D2::_turn() {
 };
 
 void R2D2::_evasiveManeuver() {
-    _translate_body_cmnd = gc::LinearDirections::FORWARD;
+    _translate_body_cmnd = gc::LinearDirection::FORWARD;
     return;
 }
 
@@ -41,7 +41,7 @@ bool R2D2::_directMissileHitCheck() const {
     for (auto missile : (*_missiles_ptr)) {
         Eigen::Vector2d I;
         double lambda;
-        if (geo::LineCircleIntersection(missile->center(), missile->dir(), geo::Cast3D2Dd(center()), gc::TANK_RAD_COL, lambda, I)) {
+        if (geo::LineCircleIntersection(missile->center(), missile->dir(), geo::Cast3D2Dd(center()), gc::TANK_RAD_COL+gc::MISSILE_RAD_COL, lambda, I)) {
             return(true);
         }
     }
