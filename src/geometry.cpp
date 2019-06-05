@@ -92,4 +92,23 @@ bool LineCircleIntersection(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am
     return(true);
 }
 
+void BoundaryMinDist(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am, Eigen::Vector2d& intersect_pt, double& intersect_dist) {   
+    //Init with max possible distance 
+    intersect_dist = sqrt( pow((gc::BOARD_PHYS_TOP-gc::BOARD_PHYS_BOTTOM),2) + pow((gc::BOARD_PHYS_RIGHT-gc::BOARD_PHYS_LEFT),2) ); 
+    for (const auto& bdry : gc::BOARD_PHYS_BOUNDARIES) {
+        Eigen::Vector2d I, B0, Bm;
+        B0 = bdry.first.cast<double>();
+        Bm = bdry.second.cast<double>();
+        double lambda;
+        if (LineLineIntersection(A0,Am,B0,Bm,lambda,I)) {
+            //non-parallel
+            if ((lambda > 0) && (lambda < intersect_dist)) {
+                intersect_dist = lambda;
+                intersect_pt = I;
+            }
+        }
+    }
+    return;
+}
+
 }

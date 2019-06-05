@@ -7,6 +7,9 @@
 
 namespace r2d2 {
 
+/* Distance between tank and boarder by which point navigation maneuvers will begin */
+const double NAVIGATION_THRESHOLD = 100;
+
 /* Easy computer player */
 class R2D2 : public tank::Tank {
 
@@ -18,8 +21,14 @@ private:
     /* R2D2 turn. Policy based strategy */
     void _turn();
 
+    /* Returns TRUE if tank is close to the boarder */
+    bool _boarderProximityCheck() const;
+
     /* Returns TRUE if tank is in danger of a missile strike */
     bool _dangerCheck() const;
+
+    /* Moves the tank away from boarders */
+    void _navigateManeuver();
 
     /* Moves the tank away from danger */
     void _evasiveManeuver();

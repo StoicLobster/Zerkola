@@ -62,6 +62,11 @@ void MinDistLinePoint(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am, cons
  */
 bool LineCircleIntersection(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am, const Eigen::Vector2d& C0, double r, double& lambda, Eigen::Vector2d& I, bool verbose=false);
 
+/* BoundaryCheck()
+ * Returns the minimum intersection distance and corresponding point from <A0,Am> and all game boundaries
+ */
+void BoundaryMinDist(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am, Eigen::Vector2d& intersect_pt, double& intersect_dist);
+
 } //namespace geo
 
 #endif //ZERKOLA_INCLUDE_GEOMETRY_H_

@@ -15,12 +15,16 @@ R2D2::R2D2(graphics::Graphics* graphics_ptr, gc::PlayerColor player_color, std::
     {};
 
 void R2D2::_turn() {
-    //If (tank in danger)
+    //If (close to boarder)
+        //Navigate action
+    //Else If (tank in danger)
         //Evasive action
     //Else
         //Aggressive action
     //Check if tank is in danger
-    if (_dangerCheck()) {
+    if (_boarderProximityCheck()) {
+        std::cout << "Navigation Maneuver!" << std::endl;
+    } else if (_dangerCheck()) {
         std::cout << "Evasive Maneuver!" << std::endl;
         //Evasive maneuver
         _evasiveManeuver();
@@ -46,6 +50,13 @@ bool R2D2::_directMissileHitCheck() const {
         }
     }
     return(false);
+}
+
+bool R2D2::_boarderProximityCheck() const {
+    Eigen::Vector2d intersect_pt;
+    double intersect_dist;
+    geo::BoundaryMinDist(geo::Cast3D2Dd(center()),geo::Cast3D2Dd(direction()),intersect_pt,intersect_dist);
+    return(intersect_dist <= NAVIGATION_THRESHOLD);
 }
 
 }

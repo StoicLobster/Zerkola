@@ -146,6 +146,9 @@ public:
 
     /* Return center position of tank */
     inline Eigen::Vector3d center() const { return(_center); };
+
+    /* Return direction of tank body */
+    inline Eigen::Vector3d direction() const { return(_l_body); };
 /*=== END PUBLIC ===*/
 
 }; //class Tank

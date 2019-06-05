@@ -90,22 +90,10 @@ void Missile::_setPose() {
 void Missile::_move(double dt_ms) {
     if (dt_ms == 0.0) return;
     double dt_s = dt_ms/1000.0;
-    //Determine closest intersection point (init with max)
-    double intersect_dist = sqrt( pow((gc::BOARD_PHYS_TOP-gc::BOARD_PHYS_BOTTOM),2) + pow((gc::BOARD_PHYS_RIGHT-gc::BOARD_PHYS_LEFT),2) );
+    //Determine closest intersection point
+    double intersect_dist;
     Eigen::Vector2d intersect_pt;
-    for (const auto& bdry : gc::BOARD_PHYS_BOUNDARIES) {
-        Eigen::Vector2d I, B0, Bm;
-        B0 = bdry.first.cast<double>();
-        Bm = bdry.second.cast<double>();
-        double lambda;
-        if (geo::LineLineIntersection(_center,_dir,B0,Bm,lambda,I)) {
-            //non-parallel
-            if ((lambda > 0) && (lambda < intersect_dist)) {
-                intersect_dist = lambda;
-                intersect_pt = I;
-            }
-        }
-    }
+    geo::BoundaryMinDist(_center,_dir,intersect_pt,intersect_dist);
     #ifdef DEBUG_RICOCHET
         std::cout << "Start _move()" << std::endl;
         std::cout << "ID: " << _ID << ", Center Point: (" << _center.x() << "," << _center.y() << "), Direction: (" << _dir.x() << "," << _dir.y() << "), Intersect Distance: " << intersect_dist << ", Intersect Point: (" << intersect_pt.x() << "," << intersect_pt.y() << ")" << std::endl;
