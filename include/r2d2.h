@@ -10,6 +10,21 @@ namespace r2d2 {
 /* Distance between tank and boarder by which point navigation maneuvers will begin */
 const double NAVIGATION_THRESHOLD = 100;
 
+/* ManeuverType
+ * 0: MANEUVER_TYPE_NONE
+ * 1: NAVIGATION
+ * 2: EVASIVE
+ * 3: AGGRESSIVE
+ * 4: NUM_MANEUVER_TYPE
+ */
+typedef enum ManeuverType {
+    MANEUVER_TYPE_NONE,
+    NAVIGATION,
+    EVASIVE,
+    AGGRESSIVE,
+    NUM_MANEUVER_TYPE
+} ManeuverType;
+
 /* Easy computer player */
 class R2D2 : public tank::Tank {
 
@@ -17,6 +32,14 @@ class R2D2 : public tank::Tank {
 private:
     /* Enemy target */
     tank::Tank* _enemyTarget;
+
+    /* Current maneuver goal of R2D2 */
+    ManeuverType _currentManeuver;
+
+    /* Previous commands */
+    gc::LinearDirection _translate_body_cmnd_prev;
+    gc::AngularDirection _rotate_body_cmnd_prev;
+    gc::AngularDirection _rotate_turret_cmnd_prev;
 
     /* R2D2 turn. Policy based strategy */
     void _turn();

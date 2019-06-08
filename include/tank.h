@@ -149,6 +149,9 @@ public:
 
     /* Return direction of tank body */
     inline Eigen::Vector3d direction() const { return(_l_body); };
+
+    /* Return motion state of tank */
+    inline gc::TankMotionState motionState() const { return(_motionState); };
 /*=== END PUBLIC ===*/
 
 }; //class Tank
