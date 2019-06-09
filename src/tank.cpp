@@ -56,6 +56,8 @@ _fire_this_turn(false),
 _move_this_turn(false),
 _motionState(gc::TankMotionState::STATIONARY),
 _shiftTimer(0.0),
+_printTimer_ms(0.0),
+_printInterval_ms(1.0)
 _missiles_ptr(missiles_ptr),
 _translate_body_cmnd(gc::LinearDirection::LINEAR_DIRECTION_NONE),
 _rotate_body_cmnd(gc::AngularDirection::ANGULAR_DIRECTION_NONE),
@@ -134,7 +136,7 @@ void Tank::_setPose() {
 
 void Tank::_determineMotionState(double dt_s) {
     if (_motionState == gc::TankMotionState::STATIONARY && 
-               _translate_body_cmnd == gc::LinearDirection::BACKWARD   ) {
+        _translate_body_cmnd == gc::LinearDirection::BACKWARD) {
         //Shifting Start
         _shiftTimer = 0.0;
         _motionState = gc::TankMotionState::SHIFTING;
@@ -232,9 +234,9 @@ void Tank::_move(double dt_ms) {
         if (_body_ang_v.z() > 0) M_RR = -1*gc::RR_TRQ;
         else if (_body_ang_v.z() < 0) M_RR = gc::RR_TRQ;
         _body_ang_a = (_rotate_body_torque_cmnd + M_RR)/gc::TANK_MOMENT_OF_INERTIA_Z * gc::Z_3D_PHYS.cast<double>();
-        //Integrate angular acceleration
+        // Integrate angular acceleration
         _integrate(dt_s, _body_ang_v, _body_ang_a_prev, _body_ang_a);
-        //Integrate angular velocity
+        // Integrate angular velocity
         double theta_delta = 0.0; //TODO: Cleaner way to handle angular position?
         _integrate(dt_s, theta_delta, _body_ang_v_prev.z(), _body_ang_v.z());
         if (theta_delta != 0.0) {
@@ -251,42 +253,43 @@ void Tank::_move(double dt_ms) {
 
         /*** Newton's Second Law - Force Balance ***/
         Eigen::Vector3d F_prop(0,0,0), F_road(0,0,0), F_RR(0,0,0);
-        F_prop = _translate_body_frc_cmnd * _l_body; //total propulsion force
-        F_road = _body_ang_v.cross(_body_lin_v)*gc::TANK_MASS; //centripetal force applied by road (since no slip we know road can supply it)
+        F_prop = _translate_body_frc_cmnd * _l_body; // total propulsion force
+        F_road = _body_ang_v.cross(_body_lin_v)*gc::TANK_MASS; // centripetal force applied by road (since no slip we know road can supply it)
         if (_body_lin_v.norm() !=  0.0) F_RR = -1*gc::RR_FRC*_body_lin_v.normalized();
         _body_lin_a = 1/gc::TANK_MASS * (F_prop + F_road + F_RR);
-        //Integrate linear acceleration
+        // Integrate linear acceleration
         _integrate(dt_s, _body_lin_v, _body_lin_a_prev, _body_lin_a);
-        //Check for velocity sign chage
+        // Check for velocity sign chage
         if ((_body_lin_v.x() < 0.0 && _body_lin_v_prev.x() > 0.0) ||
             (_body_lin_v.x() > 0.0 && _body_lin_v_prev.x() < 0.0)) {
             //Enforce pure zero velocity
             _body_lin_v.x() = 0.0;  
         }
+        // Enforce velocity limits
         double v_lin_mag = _body_lin_v.norm();
         v_lin_mag = std::max(v_lin_mag, gc::TANK_BODY_MIN_LONG_VEL);
         v_lin_mag = std::min(v_lin_mag, gc::TANK_BODY_MAX_LONG_VEL);
         _body_lin_v = v_lin_mag*_body_lin_v.normalized();
-        //Integrate linear velocity
+        // Integrate linear velocity
         _integrate(dt_s, _center, _body_lin_v_prev, _body_lin_v);
         
     } else {
         /* SLIP */
         _tractive_accel_limit_mag = gc::g*gc::SURF_KINETIC_MU;
 
-        //Really no idea how to model slip. This is a total guess.
+        // Really no idea how to model slip. This is a total guess.
         /*** Newton's Second Law - Force Balance ***/
-        //Only force is force of kinetic friction in a direction opposite to current velocity
+        // Only force is force of kinetic friction in a direction opposite to current velocity
         Eigen::Vector3d v_dir = _body_lin_v / _body_lin_v.norm();
         Eigen::Vector3d F_fric = gc::TANK_MASS * gc::g * gc::SURF_KINETIC_MU * -1 * v_dir;
         _body_lin_a = 1/gc::TANK_MASS * F_fric;
-        //Integrate linear acceleration
+        // Integrate linear acceleration
         _integrate(dt_s, _body_lin_v, _body_lin_a_prev, _body_lin_a);
-        //Integrate linear velocity
+        // Integrate linear velocity
         _integrate(dt_s, _center, _body_lin_v_prev, _body_lin_v);
     }
 
-    //Limit Tank Position
+    // Limit Tank Position
     if (_center.x() < gc::BOARD_PHYS_LEFT) _center.x() = gc::BOARD_PHYS_LEFT;
     if (_center.x() > gc::BOARD_PHYS_RIGHT) _center.x() = gc::BOARD_PHYS_RIGHT;
     if (_center.y() < gc::BOARD_PHYS_BOTTOM) _center.y() = gc::BOARD_PHYS_BOTTOM;
@@ -351,10 +354,7 @@ void Tank::_resetTurn() {
     return;
 }
 
-bool Tank::update(double dt_ms) {
-    #ifdef DEBUG_TANK 
-        std::cout << "Tank::update()" << std::endl;
-    #endif
+bool Tank::update(double dt_ms, bool verbose) {
     //Update animatedSprite
     animated_sprite::AnimatedSprite::update(dt_ms);
     //Reset turn
@@ -365,6 +365,15 @@ bool Tank::update(double dt_ms) {
     _move(dt_ms);
     //Set pose in base class
     _setPose();
+    if (verbose) {
+        _printTimer_ms += dt_ms;
+        if (_printTimer_ms >= _printInterval_ms) {
+            _printTimer_ms = 0.0;
+            std::cout << std::endl << "===== START TANK STATE =====" << std::endl << std::endl;
+            _printState();
+            std::cout << "===== END TANK STATE =====" << std::endl << std::endl;
+        }
+    }
     return(_collisionCheck());
 }
 
@@ -375,6 +384,50 @@ bool Tank::_collisionCheck() const {
         if (missile->collision_active() && (dist <= (gc::TANK_RAD_COL + gc::MISSILE_RAD_COL))) return(true);
     }
     return(false);
+}
+
+void Tank::_printState() const {
+    std::cout << "Basic State" << std::endl;
+    std::cout << "\tTank Color:" << _color << std::endl;
+    std::cout << "\tAmmo: " << _ammo << std::endl;
+    std::cout << "\tFired This Turn: " << _fire_this_turn << std::endl;
+    std::cout << "\tMoved This Turn: " << _move_this_turn << std::endl;
+
+    std::cout << "Overall Motion State" << std::endl;
+    std::cout << "\tMotion State: " << _motionState << std::endl;
+    std::cout << "\tShift Timer [ms]: " << _shiftTimer << std::endl;
+    std::cout << "\tSlip: ";
+    if (_slip) std::cout << "TRUE" << std::endl;
+    else std::cout << "FALSE" << std::endl;
+    std::cout << "\tTraction Accel Limit: " << _tractive_accel_limit_mag << std::endl;
+    
+
+    std::cout << "Linear State" << std::endl;
+    std::cout << "\tPosition: (" << _center.x() << "," << _center.y() << ")" << std::endl;
+    std::cout << "\tVelocity: (" << _body_lin_v.x() << "," << _body_lin_v.y() << ")" << std::endl;
+    std::cout << "\tAcceleration: (" << _body_lin_a.x() << "," << _body_lin_a.y() << ")" << std::endl;
+
+    std::cout << "Angular State" << std::endl;
+    std::cout << "\tLongitudinal Direction: (" << _l_body.x() << "," << _l_body.y() << "," << _l_body.z() << ")" << std::endl;
+    std::cout << "\tTransverse Direction: (" << _t_body.x() << "," << _t_body.y() << "," << _t_body.z() << ")" << std::endl;
+    std::cout << "\tVelocity: (" << _body_ang_v.x() << "," << _body_ang_v.y() << "," << _body_ang_v.z() << ")" << std::endl;
+    std::cout << "\tAcceleration: (" << _body_ang_a.x() << "," << _body_ang_a.y() << "," << _body_ang_a.z() << ")" << std::endl;
+
+    std::cout << "Turret Direction" << std::endl;
+    std::cout << "\tLongitudinal: (" << _l_turret.x() << "," << _l_turret.y() << "," << _l_turret.z() << ")" << std::endl;
+    std::cout << "\tTransverse: (" << _t_turret.x() << "," << _t_turret.y() << "," << _t_turret.z() << ")" << std::endl;
+
+    std::cout << "Motion Commands" << std::endl;
+    std::cout << "\tTranslate Body Command: " << _translate_body_cmnd << std::endl;
+    std::cout << "\tRotate Body Command: " << _rotate_body_cmnd << std::endl;
+    std::cout << "\tRotate Turret Command: " << _rotate_turret_cmnd << std::endl;
+
+    std::cout << "Control Commands" << std::endl;
+    std::cout << "\tTranslate Body Force: " << _translate_body_frc_cmnd << std::endl;
+    std::cout << "\tRotate Body Torque: " << _rotate_body_torque_cmnd << std::endl;
+    std::cout << "\tRotate Turret Speed:" << _rotate_turret_spd_cmnd << std::endl;
+    
+    return;
 }
 
 }

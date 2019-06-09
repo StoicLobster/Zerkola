@@ -99,4 +99,14 @@ bool R2D2::_boarderProximityCheck() const {
     return(intersect_dist <= NAVIGATION_THRESHOLD);
 }
 
+void R2D2::_printState() const {
+    //Print base tank state
+    Tank::_printState();
+    //Print R2D2 related fields
+    std::cout << "===== R2D2 =====" << std::endl << std::endl;
+    std::cout << "Maneuver Type: " << _currentManeuver << std::endl;
+    std::cout << std::endl;
+    return;
+}
+
 }

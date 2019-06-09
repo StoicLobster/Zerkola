@@ -38,4 +38,12 @@ void HumanPlayer::_turn() {
     return;
 }
 
+void HumanPlayer::_printState() const {
+    //Print base tank state
+    Tank::_printState();
+    //Print human player related fields
+    std::cout << "===== HUMAN PLAYER =====" << std::endl << std::endl;
+    return;
+}
+
 } //namespace human_player

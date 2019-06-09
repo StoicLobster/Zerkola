@@ -143,11 +143,11 @@ void Zerkola::draw() {
 }
 
 void Zerkola::update() {    
-    if (_tank_blue->update(_elapsedTime)) {
+    if (_tank_blue->update(_elapsedTime,true)) {
         _winningPlayer = gc::PlayerColor::RED;
         return;
     } 
-    if (_tank_red->update(_elapsedTime)) {
+    if (_tank_red->update(_elapsedTime,true)) {
         _winningPlayer = gc::PlayerColor::BLUE;
         return;
     }

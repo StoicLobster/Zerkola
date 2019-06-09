@@ -14,7 +14,10 @@ private:
     input::Input* _input_ptr;
 
     /* Human player turn. Reads inputs and distributes commands */
-    void _turn();
+    virtual void _turn();
+
+    /* Print state of player controlled tank */
+    virtual void _printState() const;
 /*=== END PRIVATE ===*/
 
 /*=== START PUBLIC ===*/

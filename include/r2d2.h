@@ -25,6 +25,28 @@ typedef enum ManeuverType {
     NUM_MANEUVER_TYPE
 } ManeuverType;
 
+ostream& operator<<(ostream& os, const ManeuverType& inpt)
+{
+	switch (inpt) {
+		case ManeuverType::NAVIGATION:
+			os << "NAVIGATION";
+			break;
+		case ManeuverType::EVASIVE:
+			os << "EVASIVE";
+			break;
+        case ManeuverType::AGGRESSIVE:
+			os << "AGGRESSIVE";
+			break;
+        case ManeuverType::MANEUVER_TYPE_NONE:
+			os << "NONE";
+			break;
+		default:
+			os << "ERROR";
+			break;
+	}
+    return os;
+}
+
 /* Easy computer player */
 class R2D2 : public tank::Tank {
 
@@ -41,8 +63,11 @@ private:
     gc::AngularDirection _rotate_body_cmnd_prev;
     gc::AngularDirection _rotate_turret_cmnd_prev;
 
+    /* Print state of R2D2 tank */
+    virtual void _printState() const;
+
     /* R2D2 turn. Policy based strategy */
-    void _turn();
+    virtual void _turn();
 
     /* Returns TRUE if tank is close to the boarder */
     bool _boarderProximityCheck() const;

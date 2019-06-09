@@ -28,6 +28,7 @@ private:
 
     /* Turret sprite object (part of tank) */
     sprite::Sprite _turret;
+
     /* Boody Fixed Unit Vectors
     * _l_body is always aligned with the tank body longitudinal direction
     * _t_body is always aligned with the tank body transverse direction
@@ -72,14 +73,17 @@ private:
     /* Timer used to track shifting to / from reverse */
     double _shiftTimer;
 
+    /* Timer and interval used for printing tank state */
+    double _printTimer_ms, _printInterval_ms;
+
     /* Determine current semantic motion state */
     void _determineMotionState(double dt_s);
 
     /* Cleanup when animation over, not currently used */
-    void _animationDone(std::string currentAnimation);
+    virtual void _animationDone(std::string currentAnimation);
 
     /* Stores sprite animations from sprite sheet */
-    void _setupAnimations();
+    virtual void _setupAnimations();
 
     /* Resets turn */
     void _resetTurn();
@@ -96,6 +100,10 @@ private:
 
     /* Sets pose in base Sprite class and transforms to screen coordinates (negate y) */
     void _setPose();
+
+    /* Print state of base Tank ADT*/
+    virtual void _printState() const = 0;
+
 /*=== END PRIVATE ===*/
 
 /*=== START PROTECTED ===*/
@@ -128,6 +136,7 @@ protected:
 
     /* Returns TRUE if a missile collided with the tank */
     bool _collisionCheck() const;
+
 /*=== END PROTECTED ===*/
 
 /*=== START PUBLIC ===*/
@@ -139,7 +148,7 @@ public:
         std::list<missile::Missile*>* missiles_ptr);
 
     /* Takes tank turn, does housekeeping, and returns TRUE if a missile collides with the tank */
-    bool update(double dt_ms);
+    bool update(double dt_ms, bool verbose=false);
 
     /* Draws all parts of the tank */
     void drawTank();
