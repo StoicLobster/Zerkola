@@ -157,7 +157,10 @@ public:
     inline Eigen::Vector3d center() const { return(_center); };
 
     /* Return direction of tank body */
-    inline Eigen::Vector3d direction() const { return(_l_body); };
+    inline Eigen::Vector3d dir() const { return(_l_body); };
+
+    /* Return direction of tank turret */
+    inline Eigen::Vector3d dirTurret() const { return(_l_turret); };
 
     /* Return motion state of tank */
     inline gc::TankMotionState motionState() const { return(_motionState); };

@@ -24,23 +24,9 @@ R2D2::R2D2(graphics::Graphics* graphics_ptr, gc::PlayerColor player_color, std::
 };
 
 void R2D2::_turn() {
-    //std::cout << "Current Maneuver: " << _currentManeuver << std::endl;
-    //std::cout << "Current Motion State: " << motionState() << std::endl;
-    //If (close to boarder)
-        //Navigate action
-    //Else If (tank in danger)
-        //Evasive action
-    //Else
-        //Aggressive action
-        
-    if (_boarderProximityCheck()) {
-        //std::cout << "Navigation Maneuver!" << std::endl;
-        _navigateManeuver();
-    } else if (_dangerCheck()) {
-        //std::cout << "Evasive Maneuver!" << std::endl;
-        //Evasive maneuver
-        _evasiveManeuver();
-    }
+    if (_boarderProximityCheck()) _navigateManeuver();
+    else if (_dangerCheck()) _evasiveManeuver();
+    else _aggressiveManeuver();
     //Store commands for next loop
     _translate_body_cmnd_prev = _translate_body_cmnd;
     _rotate_body_cmnd_prev = _rotate_body_cmnd;
@@ -60,8 +46,6 @@ void R2D2::_navigateManeuver() {
         int rand_num = rand() % 2;
         if (rand_num) _rotate_body_cmnd = gc::AngularDirection::CCW;
         else _rotate_body_cmnd = gc::AngularDirection::CW;
-        std::cout << "Rand Nun: " << rand_num << std::endl;
-        std::cout << "Rotate Command: " << _rotate_body_cmnd << std::endl;
     }
     return;
 }
@@ -74,6 +58,36 @@ void R2D2::_evasiveManeuver() {
         _currentManeuver = ManeuverType::EVASIVE;
         _translate_body_cmnd = gc::LinearDirection::FORWARD;
     }
+    return;
+}
+
+void R2D2::_aggressiveManeuver() {
+    if (_currentManeuver == ManeuverType::AGGRESSIVE) {
+        _rotate_turret_cmnd = _rotate_turret_cmnd_prev;
+        _rotate_body_cmnd = _rotate_body_cmnd_prev;
+    } else {
+        // Check if enemy is targeted
+        double lambda;
+        Eigen::Vector2d I;
+        if (geo::LineCircleIntersection(geo::Cast3D2Dd(center()), geo::Cast3D2Dd(dir()), 
+            geo::Cast3D2Dd(_enemyTarget->center()), gc::TANK_RAD_COL, lambda, I)) {
+            // Fire!
+            _fire();
+        } else {
+            // Determine turret angle rotation required to target enemy
+            // Returned in [-pi, pi]
+            double theta = geo::AngBetweenVecs(dirTurret(), (_enemyTarget->center() - center()).normalized());
+            std::cout << "Aggressive Maneuver Theta: " << theta << std::endl;
+            if (theta > 0) {
+                _rotate_turret_cmnd = gc::AngularDirection::CCW;
+                _rotate_body_cmnd = gc::AngularDirection::CCW;
+            } else {
+                _rotate_turret_cmnd = gc::AngularDirection::CW;
+                _rotate_body_cmnd = gc::AngularDirection::CW;
+            }
+        }
+    }
+
     return;
 }
 
