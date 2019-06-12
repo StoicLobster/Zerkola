@@ -19,29 +19,27 @@ inline Eigen::Vector2i Cast3D2Di(Eigen::Vector3i vec_3) { return(Eigen::Vector2i
 /* CrossProduct2D()
  * 2D cross product because for some dumb reason Eigen doesnt do that...
  */
-template <class T>
-inline double CrossProduct2D(const T& v1, const T& v2) { return(v1.x()*v2.y() - v1.y()*v2.x()); };
+inline double CrossProduct2D(const Eigen::Vector2d& v1, const Eigen::Vector2d& v2) { return(v1.x()*v2.y() - v1.y()*v2.x()); };
 
 /* CrossProduct2D()
  * 2D cross product because for some dumb reason Eigen doesnt do that...
  * 3D vector version
  */
-//inline double CrossProduct2D(const Eigen::Vector3d& v1, const Eigen::Vector3d& v2) { return(v1.x()*v2.y() - v1.y()*v2.x()); };
+inline double CrossProduct2D(const Eigen::Vector3d& v1, const Eigen::Vector3d& v2) { return(v1.x()*v2.y() - v1.y()*v2.x()); };
 
 /* AngBetweenVecs()
  * Returns angle between v1 and v2 in dir (CW or CCW)
  * Angle is in radians
  * Always between -180 and 180 degrees
  */
-template <class T>
-double AngBetweenVecs(const T& v1, const T& v2, gc::AngularDirection dir=gc::AngularDirection::CCW);
+double AngBetweenVecs(const Eigen::Vector2d& v1, const Eigen::Vector2d& v2, gc::AngularDirection dir=gc::AngularDirection::CCW);
 
 /* AngBetweenVecs()
  * Returns angle between v1 and v2 in dir (CW or CCW)
  * Angle is in radians
  * Always between -180 and 180 degrees
  */
-//double AngBetweenVecs(const Eigen::Vector3d& v1, const Eigen::Vector3d& v2, gc::AngularDirection dir=gc::AngularDirection::CCW);
+double AngBetweenVecs(const Eigen::Vector3d& v1, const Eigen::Vector3d& v2, gc::AngularDirection dir=gc::AngularDirection::CCW);
 
 /* LineLineIntersection()
  * Returns intersection point between two lines

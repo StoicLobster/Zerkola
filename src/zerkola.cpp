@@ -71,6 +71,10 @@ bool Zerkola::setup() {
             return(false);
             break;
     }
+    // Assign Enemies
+    _tank_red->setTarget(_tank_blue);
+    _tank_blue->setTarget(_tank_red);
+    // Start Game!
     std::cout << "GLHF!" << std::endl;
     _graphics.showWindow();
     _graphics.raiseWindow();
@@ -147,7 +151,7 @@ void Zerkola::update() {
         _winningPlayer = gc::PlayerColor::RED;
         return;
     } 
-    if (_tank_red->update(_elapsedTime,true)) {
+    if (_tank_red->update(_elapsedTime)) {
         _winningPlayer = gc::PlayerColor::BLUE;
         return;
     }

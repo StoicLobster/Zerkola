@@ -29,9 +29,11 @@ _dir(tank_dir),
 _travel_dist(0.0),
 _collision_active(false)
 {
-    //Align missile with tank
+    // Align missile with tank
     _rotate_align(tank_dir);
-    //Setup and play animations
+    // Offset missile by init amount
+    _translate(gc::MISSILE_INIT_OFFST);
+    // Setup and play animations
     _setupAnimations();
     playAnimation("Move");
     return;
@@ -55,7 +57,7 @@ void Missile::_setupAnimations() {
 void Missile::_translate(double dist) {
     //Confirm that dir_ is normalized
     _dir.normalize();
-    Eigen::Vector2d mvmnt_vec = _dir* dist;
+    Eigen::Vector2d mvmnt_vec = _dir*dist;
     _center += mvmnt_vec;
     _travel_dist += dist;
     return;

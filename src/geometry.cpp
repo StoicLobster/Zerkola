@@ -4,8 +4,7 @@
 
 namespace geo {
 
-template <class T>
-double AngBetweenVecs(const T& v1, const T& v2, gc::AngularDirection dir) {
+double AngBetweenVecs(const Eigen::Vector2d& v1, const Eigen::Vector2d& v2, gc::AngularDirection dir) {
     /* tan(theta) = (u cross v) / (u dot v)
      * Use atan2 to avoid divide by zero errors when u and v are perpindicular
      */
@@ -14,14 +13,14 @@ double AngBetweenVecs(const T& v1, const T& v2, gc::AngularDirection dir) {
     return(theta);
 }
 
-// double AngBetweenVecs(const Eigen::Vector3d& v1, const Eigen::Vector3d& v2, gc::AngularDirection dir) {
-//     /* tan(theta) = (u cross v) / (u dot v)
-//      * Use atan2 to avoid divide by zero errors when u and v are perpindicular
-//      */
-//     double theta = atan2(CrossProduct2D(v1,v2), v1.dot(v2));
-//     if (dir == gc::AngularDirection::CW) theta *= -1;
-//     return(theta);
-// }
+double AngBetweenVecs(const Eigen::Vector3d& v1, const Eigen::Vector3d& v2, gc::AngularDirection dir) {
+    /* tan(theta) = (u cross v) / (u dot v)
+     * Use atan2 to avoid divide by zero errors when u and v are perpindicular
+     */
+    double theta = atan2(CrossProduct2D(v1,v2), v1.dot(v2));
+    if (dir == gc::AngularDirection::CW) theta *= -1;
+    return(theta);
+}
 
 bool LineLineIntersection(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am, const Eigen::Vector2d& B0, const Eigen::Vector2d& Bm, double& lambda, Eigen::Vector2d& I) {
     //Solve for lambda at intersection of system of two vectors:
@@ -60,6 +59,8 @@ void MinDistLinePoint(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am, cons
 
 bool LineCircleIntersection(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am, const Eigen::Vector2d& C0, double r, double& lambda, Eigen::Vector2d& I, bool verbose) {
     if (verbose) std::cout << "LineCircleIntersection()" << std::endl;
+    if (verbose) std::cout << "Line Center: (" << A0.x() << "," << A0.y() << ")" << std::endl;
+    if (verbose) std::cout << "Circle Center: (" << C0.x() << "," << C0.y() << ")" << std::endl;
     // Must normalize Am in order for lambda to be distance
     Eigen::Vector2d Am_norm = Am.normalized();
     if (verbose) std::cout << "Am_norm: (" << Am_norm.x() << ", " << Am_norm.y() << ")" << std::endl;
@@ -68,7 +69,7 @@ bool LineCircleIntersection(const Eigen::Vector2d& A0, const Eigen::Vector2d& Am
     Eigen::Vector2d K;
     MinDistLinePoint(A0,Am_norm,C0,min_dist,K);
     min_dist = abs(min_dist);
-    if (verbose) std::cout << "min_dist: " << min_dist << ", K: (" << K.x() << ", " << K.y() << ")" << std::endl;
+    if (verbose) std::cout << "min_dist: " << min_dist << ", K: (" << K.x() << "," << K.y() << ")" << std::endl;
     if (min_dist > r) return(false);
     //Find point on circle that intersects with line <A0, Am> and is closest to A0
     //Use parametric equation for circle and solve system of equations (requires quadratic formula)

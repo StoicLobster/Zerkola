@@ -5,6 +5,7 @@
 #include <list>
 #include <unordered_map>
 #include <cassert>
+#include <iostream>
 
 /* Game Control
  * Defines constants used throughout the game.
@@ -116,7 +117,7 @@ const int TANK_TURRET_CENTER_RELATIVE_TO_UL_X(6), TANK_TURRET_CENTER_RELATIVE_TO
 /*=== TANK DYNAMICS ===*/
 
 /* [m] Radius of collision for tank */
-const double TANK_RAD_COL = 10;
+const double TANK_RAD_COL = 15;
 /* [kg] Mass of tank */
 const double TANK_MASS = 1000;
 /* [kg*m^2] Moment of inertia of tank about z axis */
@@ -167,6 +168,8 @@ const long double MISSILE_ACTIVE_DIST = 50;
 const long double MISSILE_MAX_DIST = 99999999;
 /* [m] Tolerance distance to boundary for missile ricochet. Required to account for floating point error */
 const int MISSILE_RICOCHET_TOL = 1;
+/* [m] Initial amount that missile is instantly offset upon firing */
+const int MISSILE_INIT_OFFST = 20;
 
 /*=== ENVIRONMENT DYNAMICS ===*/
 
@@ -259,85 +262,10 @@ typedef enum TankMotionState {
 
 } // namespace gc
 
-// Overload ostream operators
-ostream& operator<<(ostream& os, const gc::PlayerColor& inpt)
-{
-	switch (inpt) {
-		case gc::PlayerColor::BLUE:
-			os << "BLUE";
-			break;
-		case gc::PlayerColor::RED:
-			os << "RED";
-			break;
-		default:
-			os << "ERROR";
-			break;
-	}
-    return os;
-}
-
-ostream& operator<<(ostream& os, const gc::LinearDirection& inpt)
-{
-	switch (inpt) {
-		case gc::LinearDirection::FORWARD:
-			os << "FORWARD";
-			break;
-		case gc::LinearDirection::BACKWARD:
-			os << "BACKWARD";
-			break;
-		case gc::LinearDirection::LINEAR_DIRECTION_NONE:
-			os << "NONE";
-			break;
-		default:
-			os << "ERROR";
-			break;
-	}
-    return os;
-}
-
-ostream& operator<<(ostream& os, const gc::AngularDirection& inpt)
-{
-	switch (inpt) {
-		case gc::AngularDirection::CCW:
-			os << "CCW";
-			break;
-		case gc::AngularDirection::CW:
-			os << "CW";
-			break;
-		case gc::AngularDirection::ANGULAR_DIRECTION_NONE:
-			os << "NONE";
-			break;
-		default:
-			os << "ERROR";
-			break;
-	}
-    return os;
-}
-
-ostream& operator<<(ostream& os, const gc::TankMotionState& inpt)
-{
-	switch (inpt) {
-		case gc::TankMotionState::STATIONARY:
-			os << "STATIONARY";
-			break;
-		case gc::TankMotionState::PROPULSION_FORWARD:
-			os << "PROPULSION_FORWARD";
-			break;
-		case gc::TankMotionState::BRAKING:
-			os << "BRAKING";
-			break;
-		case gc::TankMotionState::SHIFTING:
-			os << "SHIFTING";
-			break;
-		case gc::TankMotionState::REVERSE:
-			os << "REVERSE";
-			break;
-		default:
-			os << "ERROR";
-			break;
-	}
-    return os;
-}
-
+// Overload ostream operators for enums
+std::ostream& operator<<(std::ostream& os, const gc::PlayerColor& inpt);
+std::ostream& operator<<(std::ostream& os, const gc::LinearDirection& inpt);
+std::ostream& operator<<(std::ostream& os, const gc::AngularDirection& inpt);
+std::ostream& operator<<(std::ostream& os, const gc::TankMotionState& inpt);
 
 #endif // ZERKOLA_INCLUDE_GAME_CONTROL_H_

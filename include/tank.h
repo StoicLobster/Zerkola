@@ -101,13 +101,13 @@ private:
     /* Sets pose in base Sprite class and transforms to screen coordinates (negate y) */
     void _setPose();
 
-    /* Print state of base Tank ADT*/
-    virtual void _printState() const = 0;
-
 /*=== END PRIVATE ===*/
 
 /*=== START PROTECTED ===*/
 protected:
+    /* Enemy target */
+    tank::Tank* _enemyTarget;
+
     /* Pointer to list of all missiles currently in game */
     std::list<missile::Missile*>* _missiles_ptr;
     
@@ -124,7 +124,7 @@ protected:
     void _move(double dt_ms);
 
     /* Fires a missile (if able) and apends it to the list */
-    void _fire(std::list<missile::Missile*>* missiles);
+    void _fire();
     
     /* Executes this frame's turn. Tank is allowed one set of move commands and one fire command. Pure virtual function 
      * Output shouild be the various motion commands:
@@ -137,6 +137,8 @@ protected:
     /* Returns TRUE if a missile collided with the tank */
     bool _collisionCheck() const;
 
+    /* Print state of base Tank ADT*/
+    virtual void _printState() const = 0;
 /*=== END PROTECTED ===*/
 
 /*=== START PUBLIC ===*/
@@ -152,6 +154,9 @@ public:
 
     /* Draws all parts of the tank */
     void drawTank();
+
+    /* Set the enemy target */
+    inline void setTarget(tank::Tank* enemy_target) { _enemyTarget = enemy_target; };
 
     /* Return center position of tank */
     inline Eigen::Vector3d center() const { return(_center); };

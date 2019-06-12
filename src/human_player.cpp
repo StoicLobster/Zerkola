@@ -17,7 +17,7 @@ void HumanPlayer::_turn() {
     //Parse input and execute move / fire
     if (_input_ptr->wasKeyPressed(SDL_SCANCODE_SPACE)) {
         //Fire a Missile
-        _fire(_missiles_ptr);
+        _fire();
     }
     if (_input_ptr->wasKeyPressed(SDL_SCANCODE_UP) || _input_ptr->isKeyHeld(SDL_SCANCODE_UP)) {
         _translate_body_cmnd = gc::LinearDirection::FORWARD;        

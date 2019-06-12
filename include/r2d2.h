@@ -4,6 +4,7 @@
 #include <tank.h>
 #include <graphics.h>
 #include <game_control.h>
+#include <iostream>
 
 namespace r2d2 {
 
@@ -18,43 +19,19 @@ const double NAVIGATION_THRESHOLD = 100;
  * 4: NUM_MANEUVER_TYPE
  */
 typedef enum ManeuverType {
-    MANEUVER_TYPE_NONE,
-    NAVIGATION,
-    EVASIVE,
-    AGGRESSIVE,
-    NUM_MANEUVER_TYPE
+    mtNONE,
+    mtINIT,
+    mtNAVIGATION,
+    mtEVASIVE,
+    mtAGGRESSIVE,
+    mtNUM
 } ManeuverType;
-
-ostream& operator<<(ostream& os, const ManeuverType& inpt)
-{
-	switch (inpt) {
-		case ManeuverType::NAVIGATION:
-			os << "NAVIGATION";
-			break;
-		case ManeuverType::EVASIVE:
-			os << "EVASIVE";
-			break;
-        case ManeuverType::AGGRESSIVE:
-			os << "AGGRESSIVE";
-			break;
-        case ManeuverType::MANEUVER_TYPE_NONE:
-			os << "NONE";
-			break;
-		default:
-			os << "ERROR";
-			break;
-	}
-    return os;
-}
 
 /* Easy computer player */
 class R2D2 : public tank::Tank {
 
 /*=== START PRIVATE ===*/
 private:
-    /* Enemy target */
-    tank::Tank* _enemyTarget;
-
     /* Current maneuver goal of R2D2 */
     ManeuverType _currentManeuver;
 
@@ -93,13 +70,13 @@ public:
     R2D2();
     ~R2D2();
     R2D2(graphics::Graphics* graphics_ptr, gc::PlayerColor player_color, std::list<missile::Missile*>* missiles_ptr);
-
-    /* Set the enemy target */
-    inline void setTarget(tank::Tank* enemy_target) { _enemyTarget = enemy_target; };
 /*=== END PUBLIC ===*/
 
 }; //class R2D2
 
 } //namespace r2d2
+
+// Overlaod ostream operator for enum
+std::ostream& operator<<(std::ostream& os, const r2d2::ManeuverType& inpt);
 
 #endif //ZERKOLA_INCLUDE_R2D2_H_

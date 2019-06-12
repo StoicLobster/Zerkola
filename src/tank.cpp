@@ -57,7 +57,8 @@ _move_this_turn(false),
 _motionState(gc::TankMotionState::STATIONARY),
 _shiftTimer(0.0),
 _printTimer_ms(0.0),
-_printInterval_ms(1.0)
+_printInterval_ms(100.0),
+_enemyTarget(nullptr),
 _missiles_ptr(missiles_ptr),
 _translate_body_cmnd(gc::LinearDirection::LINEAR_DIRECTION_NONE),
 _rotate_body_cmnd(gc::AngularDirection::ANGULAR_DIRECTION_NONE),
@@ -84,9 +85,6 @@ _rotate_turret_cmnd(gc::AngularDirection::ANGULAR_DIRECTION_NONE)
 void Tank::_animationDone(std::string currentAnimation) {}; //TODO?
 
 void Tank::_setupAnimations() {
-    #ifdef DEBUG_TANK 
-        std::cout << "Tank::_setupAnimations()" << std::endl;
-    #endif
     int sprite_start_x, sprite_start_y;
     if (_color == gc::PlayerColor::RED) {
         sprite_start_x = gc::RED_TANK_BODY_SPRITE_START_X;
@@ -103,9 +101,6 @@ void Tank::_setupAnimations() {
 }
 
 void Tank::_setPose() {
-    #ifdef DEBUG_TANK 
-        std::cout << "Tank::_setPose()" << std::endl;
-    #endif
     //Tank Body
     Eigen::Vector2d d_body(_l_body.x(), _l_body.y());
     this->setDirection(d_body);
@@ -319,21 +314,18 @@ void Tank::_move(double dt_ms) {
     return;
 }
 
-void Tank::_fire(std::list<missile::Missile*>* missiles) {
+void Tank::_fire() {
     if (_fire_this_turn) return;
     _fire_this_turn = true;
     if (_ammo <= 0) return;
-    //Reduce ammo
+    // Instantiate new missile
     short new_ID = gc::MAX_MISSILES_PER_PLAYER - _ammo;
-    //Align new missile with turret direction
     Eigen::Vector2d tank_dir(_l_turret.x(),_l_turret.y());
     missile::Missile* missile_ptr = new missile::Missile(_graphics_ptr, new_ID, _center.x(), _center.y(), tank_dir);
-    missiles->push_back(missile_ptr);
+    // Add to missile list
+    _missiles_ptr->push_back(missile_ptr);
+    // Reduce ammo
     --_ammo;
-    #ifdef DEBUG_TANK_FIRE
-        std::cout << "New Missile ID: " << new_ID << std::endl;
-        std::cout << "Current Ammo: " << _ammo << std::endl;
-    #endif
     return;
 }
 
@@ -355,6 +347,8 @@ void Tank::_resetTurn() {
 }
 
 bool Tank::update(double dt_ms, bool verbose) {
+    // Ensure enemy has been set
+    assert(_enemyTarget);
     //Update animatedSprite
     animated_sprite::AnimatedSprite::update(dt_ms);
     //Reset turn

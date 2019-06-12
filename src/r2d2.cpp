@@ -13,8 +13,7 @@ R2D2::~R2D2() {};
 R2D2::R2D2(graphics::Graphics* graphics_ptr, gc::PlayerColor player_color, std::list<missile::Missile*>* missiles_ptr):
     tank::Tank(graphics_ptr, player_color, missiles_ptr),
 
-    _enemyTarget(nullptr),
-    _currentManeuver(ManeuverType::MANEUVER_TYPE_NONE),
+    _currentManeuver(ManeuverType::mtINIT),
     _translate_body_cmnd_prev(gc::LinearDirection::LINEAR_DIRECTION_NONE),
     _rotate_body_cmnd_prev(gc::AngularDirection::ANGULAR_DIRECTION_NONE),
     _rotate_turret_cmnd_prev(gc::AngularDirection::ANGULAR_DIRECTION_NONE)
@@ -35,11 +34,11 @@ void R2D2::_turn() {
 };
 
 void R2D2::_navigateManeuver() {
-    if (_currentManeuver == ManeuverType::NAVIGATION) {
+    if (_currentManeuver == ManeuverType::mtNAVIGATION) {
         _translate_body_cmnd = _translate_body_cmnd_prev;
         _rotate_body_cmnd = _rotate_body_cmnd_prev;
     } else {
-        _currentManeuver = ManeuverType::NAVIGATION;
+        _currentManeuver = ManeuverType::mtNAVIGATION;
         //Slow down if going forward
         if (motionState() == gc::TankMotionState::PROPULSION_FORWARD) _translate_body_cmnd = gc::LinearDirection::BACKWARD;
         //Choose a random direction and start turning
@@ -51,25 +50,25 @@ void R2D2::_navigateManeuver() {
 }
 
 void R2D2::_evasiveManeuver() {
-    if (_currentManeuver == ManeuverType::EVASIVE) {
+    if (_currentManeuver == ManeuverType::mtEVASIVE) {
         _translate_body_cmnd = _translate_body_cmnd_prev;
         _rotate_body_cmnd = _rotate_body_cmnd_prev;
     } else {
-        _currentManeuver = ManeuverType::EVASIVE;
+        _currentManeuver = ManeuverType::mtEVASIVE;
         _translate_body_cmnd = gc::LinearDirection::FORWARD;
     }
     return;
 }
 
 void R2D2::_aggressiveManeuver() {
-    if (_currentManeuver == ManeuverType::AGGRESSIVE) {
+    if (_currentManeuver == ManeuverType::mtAGGRESSIVE) {
         _rotate_turret_cmnd = _rotate_turret_cmnd_prev;
         _rotate_body_cmnd = _rotate_body_cmnd_prev;
     } else {
-        // Check if enemy is targeted
+        // Check if enemy is targeted (intersection of turret and enemy)
         double lambda;
         Eigen::Vector2d I;
-        if (geo::LineCircleIntersection(geo::Cast3D2Dd(center()), geo::Cast3D2Dd(dir()), 
+        if (geo::LineCircleIntersection(geo::Cast3D2Dd(center()), geo::Cast3D2Dd(dirTurret()), 
             geo::Cast3D2Dd(_enemyTarget->center()), gc::TANK_RAD_COL, lambda, I)) {
             // Fire!
             _fire();
@@ -77,13 +76,15 @@ void R2D2::_aggressiveManeuver() {
             // Determine turret angle rotation required to target enemy
             // Returned in [-pi, pi]
             double theta = geo::AngBetweenVecs(dirTurret(), (_enemyTarget->center() - center()).normalized());
-            std::cout << "Aggressive Maneuver Theta: " << theta << std::endl;
+            //std::cout << "Aggressive Maneuver Theta: " << theta << std::endl;
             if (theta > 0) {
                 _rotate_turret_cmnd = gc::AngularDirection::CCW;
-                _rotate_body_cmnd = gc::AngularDirection::CCW;
+                if (theta >= M_PI_4) _rotate_body_cmnd = gc::AngularDirection::CCW;
+                else _rotate_body_cmnd = gc::AngularDirection::ANGULAR_DIRECTION_NONE;
             } else {
                 _rotate_turret_cmnd = gc::AngularDirection::CW;
-                _rotate_body_cmnd = gc::AngularDirection::CW;
+                if (theta <= -1*M_PI_4) _rotate_body_cmnd = gc::AngularDirection::CW;
+                else _rotate_body_cmnd = gc::AngularDirection::ANGULAR_DIRECTION_NONE;
             }
         }
     }
@@ -109,7 +110,7 @@ bool R2D2::_directMissileHitCheck() const {
 bool R2D2::_boarderProximityCheck() const {
     Eigen::Vector2d intersect_pt;
     double intersect_dist;
-    geo::BoundaryMinDist(geo::Cast3D2Dd(center()),geo::Cast3D2Dd(direction()),intersect_pt,intersect_dist);
+    geo::BoundaryMinDist(geo::Cast3D2Dd(center()),geo::Cast3D2Dd(dir()),intersect_pt,intersect_dist);
     return(intersect_dist <= NAVIGATION_THRESHOLD);
 }
 
@@ -123,4 +124,28 @@ void R2D2::_printState() const {
     return;
 }
 
+} //namespace r2d2
+
+std::ostream& operator<<(std::ostream& os, const r2d2::ManeuverType& inpt) {
+	switch (inpt) {
+        case r2d2::ManeuverType::mtINIT:
+			os << "INIT";
+			break;
+		case r2d2::ManeuverType::mtNAVIGATION:
+			os << "NAVIGATION";
+			break;
+		case r2d2::ManeuverType::mtEVASIVE:
+			os << "EVASIVE";
+			break;
+        case r2d2::ManeuverType::mtAGGRESSIVE:
+			os << "AGGRESSIVE";
+			break;
+        case r2d2::ManeuverType::mtNONE:
+			os << "NONE";
+			break;
+		default:
+			os << "ERROR";
+			break;
+	}
+    return os;
 }
